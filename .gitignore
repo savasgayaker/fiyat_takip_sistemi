@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env.local
+
+# Node
+node_modules/
+/frontend/build/
+/frontend/dist/
+.eslintcache
+
+# Tauri / Rust
+/desktop/target/
+/desktop/src-tauri/target/
+
+# OS / editor
+.DS_Store
+*.log
+.idea/
+.vscode/
+
+# Local read-only DB (phase 2)
+*.sqlite
+frontend/node_modules/.cache/default-development/3.pack

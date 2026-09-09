@@ -1,0 +1,148 @@
+export type Seviye = "TOPLAM" | "bolum" | "grup" | "sinif4" | "sinif5";
+export type Durum = "FRESH" | "CARRY" | "CARRY_GUN_YOK";
+
+export interface Meta {
+  data_date: string;
+  base_day: string;
+  coverage_weight: number;
+  class_count: number;
+  carry_count: number;
+  app_version: string;
+}
+
+export interface SeriesPoint {
+  tarih: string;
+  endeks: number;
+  eslesen_kalem?: number;
+  durum?: Durum;
+}
+
+export interface IndexResponse {
+  kod: string;
+  ad_tr: string;
+  agirlik: number;
+  seviye: Seviye;
+  series: SeriesPoint[];
+}
+
+export interface MultiSeries {
+  kod: string;
+  ad_tr: string;
+  seviye: Seviye;
+  agirlik: number;
+  series: SeriesPoint[];
+}
+
+export interface TreeNode {
+  kod: string;
+  ad_tr: string;
+  seviye: Seviye;
+  agirlik: number;
+  degisim_donem: number;
+  children: TreeNode[];
+}
+
+export interface Contrib {
+  kod: string;
+  ad_tr: string;
+  agirlik: number;
+  endeks_bas: number;
+  endeks_bit: number;
+  degisim: number;
+  katki_puan: number;
+}
+
+export interface SourceSeries {
+  kaynak: string;
+  kisim_no: number;
+  kalem_sayisi: number;
+  series: { tarih: string; endeks: number }[];
+}
+
+export interface Item {
+  kimlik: string;
+  urun_adi: string;
+  kaynak: string;
+  kisim_no: number;
+  son_fiyat: number;
+  degisim: number;
+  gun: number;
+}
+
+export interface ItemsResponse {
+  total: number;
+  items: Item[];
+}
+
+export interface ItemDetail {
+  kimlik: string;
+  urun_adi: string;
+  kaynak: string;
+  series: { tarih: string; fiyat: number }[];
+}
+
+export interface QualityDay {
+  tarih: string;
+  rc: number;
+}
+export interface QualitySection {
+  kisim_no: number;
+  ad: string;
+  days: QualityDay[];
+}
+export interface CarryClass {
+  kod: string;
+  ad_tr: string;
+  agirlik: number;
+  gun: number;
+}
+export interface Exclusion {
+  neden: string;
+  satir: number;
+}
+export interface QualityResponse {
+  sections: QualitySection[];
+  carry_classes: CarryClass[];
+  exclusions: Exclusion[];
+}
+
+export interface BasketResult {
+  series: { tarih: string; endeks: number }[];
+  contrib: {
+    kod: string;
+    ad_tr: string;
+    agirlik: number;
+    degisim: number;
+    katki_puan: number;
+  }[];
+}
+
+export interface TuikRow {
+  kod: string;
+  ad_tr: string;
+  tuik: number;
+  biz: number;
+  fark: number;
+  agirlik: number;
+  katki_fark: number;
+}
+export interface TuikCompareResult {
+  month: string;
+  rows: TuikRow[];
+  summary: { tuik: number; biz: number; fark: number };
+}
+
+export interface SearchHit {
+  type: "class" | "item";
+  kod?: string;
+  kimlik?: string;
+  ad_tr: string;
+  seviye?: Seviye;
+  kaynak?: string;
+}
+
+export interface ExportTable {
+  name: string;
+  columns: string[];
+  rows: (string | number)[][];
+}
