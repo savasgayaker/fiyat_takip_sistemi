@@ -4,7 +4,7 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
-.env.local
+.pytest_cache/
 
 # Node
 node_modules/
@@ -22,14 +22,7 @@ node_modules/
 .idea/
 .vscode/
 
-# Local read-only DB (phase 2)
+# Local data — never commit the read-only DB
 *.sqlite
-frontend/node_modules/.cache/default-development/3.pack
-frontend/node_modules/.cache/default-development/6.pack
 .env
 .env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
