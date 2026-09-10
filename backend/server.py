@@ -8,7 +8,6 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from dotenv import load_dotenv
 from fastapi import APIRouter, FastAPI, File, Form, Query, UploadFile
 from fastapi.responses import Response
 from starlette.middleware.cors import CORSMiddleware
@@ -17,7 +16,6 @@ from app.data.repository import FixtureRepository
 from app.exports import build_excel, build_pdf, tuik_compare
 
 ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / ".env")
 
 FIXTURES_DIR = ROOT_DIR / "fixtures"
 METHOD_FILE = ROOT_DIR.parent / "METODOLOJI.md"
