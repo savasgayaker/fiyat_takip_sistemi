@@ -60,6 +60,18 @@ class Repository(ABC):
     @abstractmethod
     def search(self, q: str) -> List[Dict[str, Any]]: ...
 
+    @abstractmethod
+    def class_changes(self, level: str, frm: Optional[str], to: Optional[str]) -> List[Dict[str, Any]]:
+        """Period change per node at `level` (e.g. "bolum", "sinif5").
+
+        Each row: {kod, ad_tr, agirlik, endeks_bas, endeks_bit, degisim}.
+        `degisim` is the stored-index ratio I(t2)/I(t1) - 1 in percent; nodes
+        with fewer than two points in range are omitted. Consumers
+        (PDF bulletin, TÜİK compare) must use this instead of touching the
+        underlying node/series storage.
+        """
+        ...
+
 
 class FixtureRepository(Repository):
     def __init__(self, fixtures_dir: Path):
@@ -149,23 +161,11 @@ class FixtureRepository(Repository):
         return build("TOPLAM")["children"]
 
     def contrib(self, frm, to, level):
-        toplam = self._by_kod["TOPLAM"]
         total_w = sum(n["agirlik"] for n in self._nodes if n["seviye"] == level)
         out = []
-        for n in self._nodes:
-            if n["seviye"] != level:
-                continue
-            s = self._filter_series(n["series"], frm, to)
-            if len(s) < 2:
-                continue
-            bas, bit = s[0]["endeks"], s[-1]["endeks"]
-            deg = (bit / bas - 1) * 100
-            katki = deg * n["agirlik"] / total_w
-            out.append({
-                "kod": n["kod"], "ad_tr": n["ad_tr"], "agirlik": n["agirlik"],
-                "endeks_bas": round(bas, 2), "endeks_bit": round(bit, 2),
-                "degisim": round(deg, 2), "katki_puan": round(katki, 3),
-            })
+        for c in self.class_changes(level, frm, to):
+            katki = c["degisim"] * c["agirlik"] / total_w
+            out.append({**c, "katki_puan": round(katki, 3)})
         out.sort(key=lambda x: abs(x["katki_puan"]), reverse=True)
         return out
 
@@ -262,6 +262,23 @@ class FixtureRepository(Repository):
     def baskets(self):
         return self._baskets
 
+    def class_changes(self, level, frm, to):
+        out = []
+        for n in self._nodes:
+            if n["seviye"] != level:
+                continue
+            s = self._filter_series(n["series"], frm, to)
+            if len(s) < 2:
+                continue
+            bas, bit = s[0]["endeks"], s[-1]["endeks"]
+            out.append({
+                "kod": n["kod"], "ad_tr": n["ad_tr"], "agirlik": n["agirlik"],
+                "endeks_bas": round(bas, 2), "endeks_bit": round(bit, 2),
+                "degisim": round((bit / bas - 1) * 100, 2),
+            })
+        out.sort(key=lambda x: x["kod"])
+        return out
+
     def search(self, q):
         ql = q.lower()
         out = []
@@ -301,3 +318,4 @@ class SqliteRepository(Repository):
     def basket_compute(self, weights, frm, to): self._todo()
     def baskets(self): self._todo()
     def search(self, q): self._todo()
+    def class_changes(self, level, frm, to): self._todo()
