@@ -88,7 +88,16 @@ export interface QualityDay {
 export interface QualitySection {
   kisim_no: number;
   ad: string;
+  /** COICOP divisions this section feeds (config/kisim_adlari.json). */
+  bolumler: string[];
   days: QualityDay[];
+}
+/** MASTER return-code canon (config/rc_kodlari.json). */
+export interface RcCode {
+  rc: number;
+  ad: string;
+  aciklama: string;
+  renk: string;
 }
 export interface CarryClass {
   kod: string;
@@ -112,6 +121,7 @@ export interface QualityResponse {
   carry_classes: CarryClass[];
   exclusions: Exclusion[];
   weak_classes: WeakClass[];
+  rc_kodlari: RcCode[];
 }
 
 export interface BasketResult {

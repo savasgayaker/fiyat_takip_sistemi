@@ -1,0 +1,29 @@
+{
+  "_not": "Kısım (MASTER koşusu) adları ve beslediği COICOP bölümleri. DB'de karşılığı yok; Kalite ekranı satır etiketi ve rozetleri buradan okur. Adlar şu an YER TUTUCU (uydurma şehir/kanal); Adım 1'de gerçek kısım adları ve bölüm listeleriyle doldurulacak.",
+  "kisimlar": {
+    "1":  { "ad": "İstanbul - Market",     "bolumler": ["01", "02", "05", "13"] },
+    "2":  { "ad": "Ankara - Market",       "bolumler": ["01", "02", "05", "13"] },
+    "3":  { "ad": "İzmir - Market",        "bolumler": ["01", "02", "13"] },
+    "4":  { "ad": "Bursa - Hal",           "bolumler": ["01"] },
+    "5":  { "ad": "Adana - Market",        "bolumler": ["01", "05"] },
+    "6":  { "ad": "Antalya - Market",      "bolumler": ["01", "13"] },
+    "7":  { "ad": "Konya - Akaryakıt",     "bolumler": ["07"] },
+    "8":  { "ad": "Gaziantep - Market",    "bolumler": ["01"] },
+    "9":  { "ad": "Kayseri - Market",      "bolumler": ["01", "05"] },
+    "10": { "ad": "Samsun - Market",       "bolumler": ["01"] },
+    "11": { "ad": "Trabzon - Market",      "bolumler": ["01", "13"] },
+    "12": { "ad": "Diyarbakır - Akaryakıt","bolumler": ["07"] },
+    "13": { "ad": "Eskişehir - Market",    "bolumler": ["01", "03"] },
+    "14": { "ad": "Şanlıurfa - Market",    "bolumler": ["01"] },
+    "15": { "ad": "Mersin - Market",       "bolumler": ["01", "05"] },
+    "16": { "ad": "Kocaeli - Market",      "bolumler": ["01", "08", "09"] },
+    "17": { "ad": "Denizli - Market",      "bolumler": ["01", "03"] },
+    "18": { "ad": "Malatya - Market",      "bolumler": ["01"] },
+    "19": { "ad": "Erzurum - Kira",        "bolumler": ["04"] },
+    "20": { "ad": "Sivas - Market",        "bolumler": ["01"] },
+    "21": { "ad": "Manisa - Market",       "bolumler": ["01", "06"] },
+    "22": { "ad": "Balıkesir - Market",    "bolumler": ["01", "10", "11"] },
+    "23": { "ad": "Van - Market",          "bolumler": ["01", "12"] },
+    "24": { "ad": "Aydın - Market",        "bolumler": ["01", "13"] }
+  }
+}

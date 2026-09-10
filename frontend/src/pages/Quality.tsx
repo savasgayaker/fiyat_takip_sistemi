@@ -12,18 +12,12 @@ import {
 import { PageHeader } from "@/components/common/PageHeader";
 import { ExportButtons } from "@/components/common/ExportButtons";
 import { LoadingState, ErrorState } from "@/components/common/States";
+import { HoverTip } from "@/components/common/HoverTip";
 import { getQuality } from "@/lib/api";
 import { tr } from "@/i18n/tr";
-import { fmtDateShort, fmtNum } from "@/lib/format";
-import type { ExportTable } from "@/types";
-
-const RC_COLOR: Record<number, string> = {
-  0: "bg-emerald-500",
-  1: "bg-amber-400",
-  4: "bg-orange-500",
-  5: "bg-red-600",
-  6: "bg-red-700",
-};
+import { fmtDateShort, fmtDate, fmtNum } from "@/lib/format";
+import { colorForKod } from "@/lib/palette";
+import type { ExportTable, RcCode } from "@/types";
 
 export default function Quality() {
   const q = useQuery({ queryKey: ["quality"], queryFn: () => getQuality(14) });
@@ -32,6 +26,12 @@ export default function Quality() {
     () => q.data?.sections?.[0]?.days.map((d) => d.tarih) || [],
     [q.data],
   );
+  // rc -> {ad, aciklama, renk} from config/rc_kodlari.json; nothing hard-coded here.
+  const rcMap = useMemo(() => {
+    const m = new Map<number, RcCode>();
+    (q.data?.rc_kodlari || []).forEach((r) => m.set(r.rc, r));
+    return m;
+  }, [q.data]);
 
   const exportTables: ExportTable[] = useMemo(() => {
     if (!q.data) return [];
@@ -64,7 +64,15 @@ export default function Quality() {
         title={tr.quality.title}
         right={<ExportButtons screen="kalite" tables={exportTables} />}
       >
-        <p className="mt-1 text-sm text-muted-foreground">{tr.quality.rcLegend}</p>
+        <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+          <span>{tr.quality.rcLegend}:</span>
+          {(q.data?.rc_kodlari || []).map((r) => (
+            <span key={r.rc} className="inline-flex items-center gap-1" data-testid={`rc-legend-${r.rc}`}>
+              <span className="inline-block h-3 w-3 rounded-sm" style={{ background: r.renk }} />
+              <span className="font-mono">{r.rc}</span> {r.ad}
+            </span>
+          ))}
+        </p>
       </PageHeader>
 
       {q.isLoading ? (
@@ -78,8 +86,8 @@ export default function Quality() {
               <CardTitle className="text-base">{tr.quality.grid}</CardTitle>
             </CardHeader>
             <CardContent className="scrollbar-thin overflow-x-auto">
-              <div className="min-w-[720px]">
-                <div className="mb-1 flex items-center gap-1 pl-[168px] text-[10px] text-muted-foreground">
+              <div className="min-w-[760px]">
+                <div className="mb-1 flex items-center gap-1 pl-[232px] text-[10px] text-muted-foreground">
                   {dates.map((d) => (
                     <div key={d} className="w-6 text-center">
                       {fmtDateShort(d).split(".")[0]}
@@ -92,20 +100,57 @@ export default function Quality() {
                     className="flex items-center gap-1 py-0.5"
                     data-testid={`quality-row-${s.kisim_no}`}
                   >
-                    <div className="w-[168px] shrink-0 truncate text-xs">
-                      <span className="mr-1 font-mono text-muted-foreground">
+                    <div className="flex w-[232px] shrink-0 items-center gap-1 text-xs">
+                      <span className="w-5 shrink-0 font-mono text-muted-foreground">
                         {s.kisim_no}
                       </span>
-                      {s.ad}
+                      <span className="min-w-0 flex-1 truncate" title={s.ad}>
+                        {s.ad}
+                      </span>
+                      <span
+                        className="flex shrink-0 gap-0.5"
+                        title={`${tr.quality.feeds}: ${s.bolumler.join(", ")}`}
+                        data-testid={`section-bolumler-${s.kisim_no}`}
+                      >
+                        {s.bolumler.map((b) => (
+                          <span
+                            key={b}
+                            className="rounded-sm px-1 font-mono text-[9px] leading-4 text-white"
+                            style={{ background: colorForKod(b) }}
+                          >
+                            {b}
+                          </span>
+                        ))}
+                      </span>
                     </div>
-                    {s.days.map((d) => (
-                      <div
-                        key={d.tarih}
-                        title={`${s.ad} · ${d.tarih} · rc=${d.rc}`}
-                        className={`h-6 w-6 rounded-sm ${RC_COLOR[d.rc] || "bg-muted"}`}
-                        data-testid={`rc-cell-${s.kisim_no}-${d.tarih}`}
-                      />
-                    ))}
+                    {s.days.map((d) => {
+                      const rc = rcMap.get(d.rc);
+                      return (
+                        <HoverTip
+                          key={d.tarih}
+                          className="h-6 w-6 rounded-sm"
+                          style={{ background: rc?.renk || "hsl(var(--muted))" }}
+                          testid={`rc-cell-${s.kisim_no}-${d.tarih}`}
+                          content={
+                            <div className="space-y-0.5">
+                              <div className="font-medium">{fmtDate(d.tarih)}</div>
+                              <div>
+                                {tr.quality.section} {s.kisim_no} · {s.ad}
+                              </div>
+                              <div>
+                                <span className="font-mono">rc={d.rc}</span>{" "}
+                                {rc ? rc.ad : tr.quality.unknownRc}
+                              </div>
+                              {rc?.aciklama && (
+                                <div className="text-muted-foreground">{rc.aciklama}</div>
+                              )}
+                            </div>
+                          }
+                        >
+                          <span className="sr-only">{`${s.ad} ${d.tarih} rc=${d.rc}`}</span>
+                        </HoverTip>
+                      );
+                    })}
                   </div>
                 ))}
               </div>

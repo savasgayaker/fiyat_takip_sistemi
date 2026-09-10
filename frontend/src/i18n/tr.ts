@@ -108,8 +108,10 @@ export const tr = {
     exclusions: "Dışlanan Gözlemler",
     reason: "Neden",
     rows: "Satır",
-    rcLegend: "rc: 0 başarılı · 1 uyarı · 4 kısmi · 5/6 hata",
+    rcLegend: "rc",
     section: "Kısım",
+    unknownRc: "tanımsız rc",
+    feeds: "Beslediği bölümler",
   },
   tuik: {
     title: "TÜİK Kıyas",

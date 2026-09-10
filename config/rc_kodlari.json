@@ -1,0 +1,10 @@
+{
+  "_not": "MASTER rc (return code) kanonu. Kalite ekranındaki Kısım × Gün ızgarası renkleri ve tooltip anlamları buradan okunur; UI'da sabit eşleme yoktur. Yeni rc eklenirse buraya satır eklemek yeter.",
+  "kodlar": [
+    { "rc": 0, "ad": "Başarılı", "aciklama": "Koşu tamamlandı, veri yüklendi", "renk": "#10B981" },
+    { "rc": 1, "ad": "Uyarı", "aciklama": "Tamamlandı, kalite bayraklı satırlar var", "renk": "#FBBF24" },
+    { "rc": 4, "ad": "Robots reddi", "aciklama": "Kaynak robots/oran sınırı nedeniyle reddetti; kısmi veri", "renk": "#F97316" },
+    { "rc": 5, "ad": "Veri yok", "aciklama": "Koşu bitti ama hiç gözlem gelmedi", "renk": "#DC2626" },
+    { "rc": 6, "ad": "Hata", "aciklama": "Koşu hatayla kesildi (log'a bak)", "renk": "#7F1D1D" }
+  ]
+}

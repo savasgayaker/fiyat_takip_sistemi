@@ -93,6 +93,10 @@ class FixtureRepository(Repository):
         self.dir = Path(fixtures_dir)
         self.config_dir = Path(config_dir) if config_dir else DEFAULT_CONFIG_DIR
         self._tarife = {c["kod"] for c in load_config(self.config_dir, "tarife_siniflari").get("siniflar", [])}
+        # Section (kısım) names + fed COICOP divisions; no DB counterpart.
+        self._kisimlar: Dict[str, Dict[str, Any]] = load_config(self.config_dir, "kisim_adlari").get("kisimlar", {})
+        # MASTER rc canon: colour + meaning per return code.
+        self._rc_kodlari: List[Dict[str, Any]] = load_config(self.config_dir, "rc_kodlari").get("kodlar", [])
         self._nodes: List[Dict[str, Any]] = self._load("nodes.json")
         self._items: Dict[str, List[Dict[str, Any]]] = self._load("items.json")
         self._item_series: Dict[str, Any] = self._load("item_series.json")
@@ -261,9 +265,13 @@ class FixtureRepository(Repository):
         q = self._quality
         sections = []
         for s in q["sections"]:
-            sections.append({**s, "days": s["days"][-days:]})
+            cfg = self._kisimlar.get(str(s["kisim_no"]), {})
+            sections.append({**s, "ad": cfg.get("ad", s["ad"]),
+                             "bolumler": list(cfg.get("bolumler", [])),
+                             "days": s["days"][-days:]})
         return {"sections": sections, "carry_classes": q["carry_classes"],
-                "exclusions": q["exclusions"], "weak_classes": self.weak_classes()}
+                "exclusions": q["exclusions"], "weak_classes": self.weak_classes(),
+                "rc_kodlari": self._rc_kodlari}
 
     def basket_compute(self, weights, frm, to):
         total_w = sum(weights.values()) or 1.0

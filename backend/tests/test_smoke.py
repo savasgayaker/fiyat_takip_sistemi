@@ -65,6 +65,13 @@ def test_quality():
     assert set(weak) == {"11311", "07312"}  # Otel konaklama, Uçak bileti
     assert all(w["kalem"] < 10 and w["agirlik"] >= 0.3 for w in weak.values())
     assert "04211" not in weak  # Elektrik: few items but tariff-listed
+    # rc canon and section metadata come from config/, not from code
+    rcs = {r["rc"]: r for r in body["rc_kodlari"]}
+    assert set(rcs) == {0, 1, 4, 5, 6}
+    assert all(r["renk"].startswith("#") and r["ad"] for r in rcs.values())
+    s1 = body["sections"][0]
+    assert s1["kisim_no"] == 1 and s1["ad"] and isinstance(s1["bolumler"], list)
+    assert "01" in s1["bolumler"]
 
 
 def test_baskets():
