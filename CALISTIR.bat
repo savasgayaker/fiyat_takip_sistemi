@@ -3,8 +3,13 @@ rem DCK-EOS Fiyat Endeksi - yerel gelistirme baslatici (Windows)
 rem Arka uc: backend\.venv icindeki Python, fikstur verisiyle, 127.0.0.1:8001
 rem On yuz : CRA gelistirme sunucusu, http://localhost:3000
 rem Iki ayri pencere acilir; kapatmak icin pencereleri kapatin (Ctrl+C).
-setlocal
+setlocal EnableExtensions
 cd /d "%~dp0"
+
+rem Gezgin'den cift tiklandiginda PATH bayat olabilir; Node ve corepack
+rem shim dizinlerini kendimiz ekleyelim.
+set "PATH=%ProgramFiles%\nodejs;%APPDATA%\npm;%LOCALAPPDATA%\Programs\nodejs;%PATH%"
+set "COREPACK_ENABLE_DOWNLOAD_PROMPT=0"
 
 set "PY=%~dp0backend\.venv\Scripts\python.exe"
 if not exist "%PY%" (
@@ -20,18 +25,41 @@ if not exist "%~dp0frontend\node_modules" (
     pause
     exit /b 1
 )
+
+rem ---- yarn'i bul: PATH -> %APPDATA%\npm\yarn.cmd -> npx --yes yarn -> corepack yarn
+set "YARN="
 where yarn >nul 2>nul
-if errorlevel 1 (
-    echo [HATA] yarn bulunamadi. Node LTS kurulu ise: corepack enable
+if not errorlevel 1 set "YARN=yarn"
+if not defined YARN if exist "%APPDATA%\npm\yarn.cmd" set "YARN=%APPDATA%\npm\yarn.cmd"
+if not defined YARN (
+    where npx >nul 2>nul
+    if not errorlevel 1 (
+        call npx --yes yarn --version >nul 2>nul
+        if not errorlevel 1 set "YARN=npx --yes yarn"
+    )
+)
+if not defined YARN (
+    where corepack >nul 2>nul
+    if not errorlevel 1 (
+        call corepack yarn --version >nul 2>nul
+        if not errorlevel 1 set "YARN=corepack yarn"
+    )
+)
+if not defined YARN (
+    echo [HATA] yarn bulunamadi. Node LTS kurulu degilse https://nodejs.org/ adresinden kurun,
+    echo kuruluysa su komutu bir kez calistirin ^(yonetici gerekmez^):
+    echo    corepack enable --install-directory "%%APPDATA%%\npm"
+    echo ardindan bu dosyayi yeniden calistirin.
     pause
     exit /b 1
 )
+echo yarn: %YARN%
 
 echo Arka uc baslatiliyor (127.0.0.1:8001, --fixtures)...
 start "DCK-EOS arka uc :8001" cmd /k "cd /d "%~dp0backend" && "%PY%" server.py --fixtures"
 
 echo On yuz baslatiliyor (localhost:3000)...
-start "DCK-EOS on yuz :3000" cmd /k "cd /d "%~dp0frontend" && set BROWSER=none&& yarn start"
+start "DCK-EOS on yuz :3000" cmd /k "cd /d "%~dp0frontend" && set BROWSER=none&& %YARN% start"
 
 echo On yuzun hazir olmasi bekleniyor...
 set /a TRIES=0
