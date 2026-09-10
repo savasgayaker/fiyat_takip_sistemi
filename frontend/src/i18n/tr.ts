@@ -38,6 +38,7 @@ export const tr = {
     settings: "Ayarlar",
     dbPath: "Veritabanı yolu",
     baseDay: "Baz gün",
+    methodVersion: "Yöntem sürümü",
     language: "Dil",
     theme: "Tema",
     light: "Açık",

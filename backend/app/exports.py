@@ -127,7 +127,7 @@ def build_pdf(repo, frm: Optional[str], to: Optional[str]) -> bytes:
            Spacer(1, 0.3 * cm), Paragraph("Günlük Fiyat Endeksi Bülteni", h2),
            Spacer(1, 0.5 * cm), Paragraph(f"Dönem: {period}", normal),
            Paragraph(f"Veri tarihi: {meta['data_date']}", normal),
-           Paragraph(f"Uygulama sürümü: {meta['app_version']}", normal),
+           Paragraph(f"Uygulama sürümü: {meta['app_version']} · Yöntem sürümü: {meta.get('yontem_surumu', '—')}", normal),
            Spacer(1, 0.8 * cm)]
 
     change = 0.0

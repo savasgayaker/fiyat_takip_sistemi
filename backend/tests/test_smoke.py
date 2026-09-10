@@ -13,7 +13,13 @@ client = TestClient(app)
 
 
 def test_meta():
-    assert client.get("/api/meta").status_code == 200
+    r = client.get("/api/meta")
+    assert r.status_code == 200
+    m = r.json()
+    for k in ("data_date", "base_day", "coverage_weight", "class_count",
+              "carry_count", "app_version", "yontem_surumu"):
+        assert k in m, k
+    assert m["yontem_surumu"].startswith("v")
 
 
 def test_index():

@@ -367,6 +367,8 @@ meta = {
     "class_count": len(leaf_meta),
     "carry_count": len(carry_classes),
     "app_version": "1.0.0",
+    # Method version stamp (yontem_surumu in endeks_* tables); shown in every footer.
+    "yontem_surumu": "v0.1",
 }
 
 # ---- write -----------------------------------------------------------------

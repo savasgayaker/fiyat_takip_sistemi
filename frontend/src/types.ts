@@ -8,6 +8,8 @@ export interface Meta {
   class_count: number;
   carry_count: number;
   app_version: string;
+  /** Method version of the published series (yontem_surumu), e.g. "v0.1". */
+  yontem_surumu: string;
 }
 
 export interface SeriesPoint {
