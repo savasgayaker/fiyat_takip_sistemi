@@ -25,3 +25,4 @@ node_modules/
 # Local read-only DB (phase 2)
 *.sqlite
 frontend/node_modules/.cache/default-development/3.pack
+frontend/node_modules/.cache/default-development/6.pack

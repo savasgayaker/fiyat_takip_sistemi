@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { RotateCcw, Check } from "lucide-react";
+import { RotateCcw, Check, Save, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import { tr } from "@/i18n/tr";
 import { fmtNum, fmtPct, fmtSigned } from "@/lib/format";
 import { SERIES_PALETTE, colorForKod } from "@/lib/palette";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import type { BasketResult, ExportTable } from "@/types";
 
 const CUSTOM = "Özel";
@@ -40,6 +41,16 @@ export default function Basket() {
   const [selected, setSelected] = useState<string[]>(["TÜİK 2026"]);
   const [computed, setComputed] = useState<Record<string, BasketResult>>({});
   const [computing, setComputing] = useState(false);
+  const [saved, setSaved] = useState<Record<string, Record<string, number>>>(
+    () => {
+      try {
+        return JSON.parse(localStorage.getItem("savedBaskets") || "{}");
+      } catch {
+        return {};
+      }
+    },
+  );
+  const [newName, setNewName] = useState("");
 
   // Initialise custom weights from the TÜİK 2026 preset once loaded.
   useEffect(() => {
@@ -52,7 +63,29 @@ export default function Basket() {
   const sum = Object.values(custom).reduce((a, b) => a + (Number(b) || 0), 0);
 
   const basketWeights = (name: string): Record<string, number> =>
-    name === CUSTOM ? custom : basketsQ.data?.[name] || {};
+    name === CUSTOM ? custom : basketsQ.data?.[name] || saved[name] || {};
+
+  const persistSaved = (next: Record<string, Record<string, number>>) => {
+    setSaved(next);
+    localStorage.setItem("savedBaskets", JSON.stringify(next));
+  };
+  const saveBasket = () => {
+    const name = newName.trim();
+    if (!name) return;
+    if (Math.abs(sum - 100) >= 0.01) {
+      toast.error(tr.basket.mustSum);
+      return;
+    }
+    persistSaved({ ...saved, [name]: { ...custom } });
+    setNewName("");
+    toast.success(`"${name}" kaydedildi`);
+  };
+  const deleteBasket = (name: string) => {
+    const next = { ...saved };
+    delete next[name];
+    persistSaved(next);
+    setSelected((prev) => prev.filter((n) => n !== name));
+  };
 
   const toggle = (name: string) => {
     setSelected((prev) => {
@@ -216,6 +249,64 @@ export default function Basket() {
               {Math.abs(sum - 100) >= 0.01 && (
                 <p className="text-xs text-amber-600">{tr.basket.mustSum}</p>
               )}
+              <div className="space-y-2 border-t border-border pt-3">
+                <div className="text-xs font-medium text-muted-foreground">
+                  {tr.basket.savedBaskets}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder={tr.basket.saveName}
+                    className="h-8 text-xs"
+                    data-testid="basket-name-input"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={saveBasket}
+                    data-testid="save-basket-button"
+                  >
+                    <Save className="h-3.5 w-3.5" /> {tr.basket.save}
+                  </Button>
+                </div>
+                {Object.keys(saved).length === 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    {tr.basket.noneSaved}
+                  </p>
+                ) : (
+                  <div className="space-y-1">
+                    {Object.keys(saved).map((n) => (
+                      <div
+                        key={n}
+                        className="flex items-center justify-between rounded-md border border-border px-2 py-1 text-xs"
+                        data-testid={`saved-basket-${n}`}
+                      >
+                        <span className="truncate">{n}</span>
+                        <span className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2"
+                            onClick={() => setCustom({ ...saved[n] })}
+                            data-testid={`load-saved-${n}`}
+                          >
+                            {tr.basket.load}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => deleteBasket(n)}
+                            data-testid={`delete-saved-${n}`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
 
@@ -227,7 +318,7 @@ export default function Basket() {
               </CardHeader>
               <CardContent>
                 <div className="mb-4 flex flex-wrap gap-2">
-                  {[...presetNames, CUSTOM].map((n) => {
+                  {[...presetNames, ...Object.keys(saved), CUSTOM].map((n) => {
                     const on = selected.includes(n);
                     return (
                       <Button

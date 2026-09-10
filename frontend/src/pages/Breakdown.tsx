@@ -24,6 +24,7 @@ import { LoadingState, ErrorState, EmptyState } from "@/components/common/States
 import { IndexLineChart } from "@/components/charts/IndexLineChart";
 import { Sparkline } from "@/components/charts/Sparkline";
 import { TreeView } from "@/components/breakdown/TreeView";
+import { DivisionHeatmap } from "@/components/breakdown/DivisionHeatmap";
 import {
   getTree,
   getIndexMulti,
@@ -368,6 +369,12 @@ export default function Breakdown() {
           )}
         </div>
       </div>
+
+      {treeQ.data && treeQ.data.length > 0 && (
+        <div className="mt-6">
+          <DivisionHeatmap divisions={treeQ.data} />
+        </div>
+      )}
     </div>
   );
 }

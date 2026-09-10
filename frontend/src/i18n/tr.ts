@@ -78,6 +78,9 @@ export const tr = {
     lastPrice: "Son Fiyat",
     days: "Gün",
     itemSparkline: "Fiyat seyri",
+    heatmap: "Bölüm Isı Haritası (günlük % değişim)",
+    heatmapNeg: "Azalış",
+    heatmapPos: "Artış",
   },
   basket: {
     title: "Sepet",
@@ -88,6 +91,11 @@ export const tr = {
     compare: "Sepetleri karşılaştır (en fazla 3)",
     contributions: "Katkılar",
     mustSum: "Ağırlıklar 100 olmalı veya normalize edilmeli",
+    save: "Kaydet",
+    saveName: "Sepet adı…",
+    savedBaskets: "Kayıtlı Sepetler",
+    load: "Yükle",
+    noneSaved: "Henüz kayıtlı sepet yok",
   },
   quality: {
     title: "Kaynaklar & Kalite",
