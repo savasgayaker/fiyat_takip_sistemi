@@ -6,6 +6,7 @@ All numeric domain fields keep their Turkish field names (kod, ad_tr, ...).
 """
 import json
 import random
+import zlib
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -159,7 +160,9 @@ for (bkod, bad, bweight, bgrowth, groups) in DIVISIONS:
     # generate leaf series
     for (s5kod, cad, kisim) in all_leaves:
         g = bgrowth + rnd.uniform(-0.5, 0.6)
-        series = gen_leaf_series(g, hash(s5kod) & 0xFFFFFFFF)
+        # zlib.crc32, not hash(): str hashing is salted per process, which made
+        # every regeneration produce different fixtures.
+        series = gen_leaf_series(g, zlib.crc32(s5kod.encode()))
         if cad == "Zeytinyağı":
             global_carry = s5kod
             CARRY_CLASS_KOD = s5kod
