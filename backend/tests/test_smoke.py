@@ -31,7 +31,23 @@ def test_index_multi():
 def test_tree():
     r = client.get("/api/tree")
     assert r.status_code == 200
-    assert len(r.json()) == 13
+    tree = r.json()
+    assert len(tree) == 13
+
+    # Depth is not fixed: bolum -> grup -> sinif4 -> sinif5 (5-digit) must all
+    # be present so the UI tree can be exercised at every level.
+    def depth(n):
+        return 1 + max((depth(c) for c in n["children"]), default=0)
+
+    assert max(depth(n) for n in tree) >= 4
+    s4 = tree[0]["children"][0]["children"][0]
+    assert s4["kod"] == "0111" and s4["seviye"] == "sinif4"
+    assert [c["kod"] for c in s4["children"]][:2] == ["01111", "01112"]
+    assert all(c["seviye"] == "sinif5" for c in s4["children"])
+    # Pass-through levels (one child, same weight) exist in the fixture; the
+    # frontend collapses them to "011 › 0111".
+    grp = tree[0]["children"][0]
+    assert len(grp["children"]) == 1 and grp["children"][0]["agirlik"] == grp["agirlik"]
 
 
 def test_contrib():

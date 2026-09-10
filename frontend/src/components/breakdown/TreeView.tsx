@@ -13,21 +13,42 @@ interface Props {
 }
 
 interface FlatRow {
+  /** The node whose index/weight/children are shown (deepest of a collapsed chain). */
   node: TreeNode;
+  /** Codes of the chain, e.g. ["081", "0811"]; a single entry when nothing collapsed. */
+  chain: string[];
   depth: number;
   hasChildren: boolean;
 }
 
+const WEIGHT_EPS = 0.005;
+
+/**
+ * Collapse pass-through levels: a node with exactly one child whose weight
+ * equals its own carries no information of its own, so it is displayed as
+ * "081 › 0811" with the child's index and weight. Applied repeatedly, so
+ * chains of any length collapse; any depth (bolum → grup → sinif4 → sinif5
+ * or deeper) is supported because the walk is recursive.
+ */
+function collapseChain(node: TreeNode): { node: TreeNode; chain: string[] } {
+  const chain = [node.kod];
+  let cur = node;
+  while (
+    cur.children?.length === 1 &&
+    Math.abs(cur.children[0].agirlik - cur.agirlik) < WEIGHT_EPS
+  ) {
+    cur = cur.children[0];
+    chain.push(cur.kod);
+  }
+  return { node: cur, chain };
+}
+
 /** Flatten the visible portion of the tree into rows (respecting open state). */
-function flatten(
-  nodes: TreeNode[],
-  openSet: Set<string>,
-  depth: number,
-  out: FlatRow[],
-) {
-  for (const node of nodes) {
+function flatten(nodes: TreeNode[], openSet: Set<string>, depth: number, out: FlatRow[]) {
+  for (const raw of nodes) {
+    const { node, chain } = collapseChain(raw);
     const hasChildren = !!node.children && node.children.length > 0;
-    out.push({ node, depth, hasChildren });
+    out.push({ node, chain, depth, hasChildren });
     if (hasChildren && openSet.has(node.kod)) {
       flatten(node.children, openSet, depth + 1, out);
     }
@@ -37,7 +58,7 @@ function flatten(
 export function TreeView({ nodes, selected, onToggle }: Props) {
   // Divisions (top level) start open.
   const [openSet, setOpenSet] = useState<Set<string>>(
-    () => new Set(nodes.map((n) => n.kod)),
+    () => new Set(nodes.map((n) => collapseChain(n).node.kod)),
   );
 
   const rows = useMemo(() => {
@@ -57,7 +78,8 @@ export function TreeView({ nodes, selected, onToggle }: Props) {
 
   return (
     <div>
-      {rows.map(({ node, depth, hasChildren }) => {
+      {rows.map(({ node, chain, depth, hasChildren }) => {
+        // Selection uses the deepest code of the chain: its series is the one shown.
         const isSel = selected.includes(node.kod);
         const isOpen = openSet.has(node.kod);
         return (
@@ -70,6 +92,7 @@ export function TreeView({ nodes, selected, onToggle }: Props) {
             )}
             style={{ paddingLeft: depth * 14 + 4 }}
             data-testid={`tree-node-${node.kod}`}
+            data-chain={chain.length > 1 ? chain.join(">") : undefined}
           >
             <button
               onClick={(e) => {
@@ -100,7 +123,7 @@ export function TreeView({ nodes, selected, onToggle }: Props) {
             />
             <span className="flex-1 truncate text-left" title={node.ad_tr}>
               <span className="mr-1 font-mono text-xs text-muted-foreground">
-                {node.kod}
+                {chain.join(" › ")}
               </span>
               {node.ad_tr}
             </span>
