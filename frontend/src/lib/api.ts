@@ -15,7 +15,8 @@ import type {
   ExportTable,
 } from "@/types";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL as string;
+// Local backend only (see CLAUDE.md). Override with REACT_APP_BACKEND_URL when needed.
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://127.0.0.1:8001";
 export const API = `${BACKEND_URL}/api`;
 
 const client = axios.create({ baseURL: API });

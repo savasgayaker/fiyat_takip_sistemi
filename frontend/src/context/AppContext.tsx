@@ -1,5 +1,6 @@
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -57,17 +58,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("dbPath", dbPath);
   }, [dbPath]);
 
-  const setPreset = (p: PresetKey) => {
-    setPresetState(p);
-    if (meta && p !== "ozel") {
-      setRange(presetRange(p, meta.data_date, meta.base_day));
-    }
-  };
+  const setPreset = useCallback(
+    (p: PresetKey) => {
+      setPresetState(p);
+      if (meta && p !== "ozel") {
+        setRange(presetRange(p, meta.data_date, meta.base_day));
+      }
+    },
+    [meta],
+  );
 
-  const setCustomRange = (from: string, to: string) => {
+  const setCustomRange = useCallback((from: string, to: string) => {
     setPresetState("ozel");
     setRange({ from, to });
-  };
+  }, []);
 
   const value = useMemo<AppState>(
     () => ({
@@ -83,7 +87,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       dbPath,
       setDbPath,
     }),
-    [meta, metaLoading, range, preset, theme, dbPath],
+    [meta, metaLoading, range, preset, theme, dbPath, setPreset, setCustomRange],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

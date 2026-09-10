@@ -64,7 +64,7 @@ export default function Dashboard() {
   });
   const qualityQ = useQuery({ queryKey: ["quality"], queryFn: () => getQuality(14) });
 
-  const series = idxQ.data?.series || [];
+  const series = useMemo(() => idxQ.data?.series || [], [idxQ.data]);
 
   const stats = useMemo(() => {
     if (series.length < 2) return null;

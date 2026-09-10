@@ -28,7 +28,10 @@ const RC_COLOR: Record<number, string> = {
 export default function Quality() {
   const q = useQuery({ queryKey: ["quality"], queryFn: () => getQuality(14) });
 
-  const dates = q.data?.sections?.[0]?.days.map((d) => d.tarih) || [];
+  const dates = useMemo(
+    () => q.data?.sections?.[0]?.days.map((d) => d.tarih) || [],
+    [q.data],
+  );
 
   const exportTables: ExportTable[] = useMemo(() => {
     if (!q.data) return [];
