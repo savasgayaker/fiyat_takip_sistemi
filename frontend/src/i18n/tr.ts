@@ -64,6 +64,10 @@ export const tr = {
     coverageWeight: "Kapsanan ağırlık",
     liveClasses: "Canlı sınıf",
     carryClasses: "Devreden sınıf",
+    carryWeightShare: "ağırlık payı",
+    weakRepr: "Temsil zayıf",
+    weakReprHint: "Ağırlık ≥ %0,3, kalem < 10, tarife dışı",
+    items: "kalem",
   },
   breakdown: {
     title: "Kırılım (COICOP)",

@@ -12,6 +12,21 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+# Repo-level config (config/*.json). No hard-coded paths elsewhere.
+DEFAULT_CONFIG_DIR = Path(__file__).resolve().parents[3] / "config"
+
+# "Temsil zayıf" rule (handover note §5): weight >= 0.3, items < 10, not a tariff class.
+WEAK_MIN_WEIGHT = 0.3
+WEAK_MAX_ITEMS = 10
+
+
+def load_config(config_dir: Path, name: str) -> Dict[str, Any]:
+    """Read config/<name>.json; missing file -> {} so fixtures work without config."""
+    p = Path(config_dir) / f"{name}.json"
+    if not p.exists():
+        return {}
+    return json.loads(p.read_text(encoding="utf-8"))
+
 
 def _in_range(tarih: str, frm: Optional[str], to: Optional[str]) -> bool:
     if frm and tarih < frm:
@@ -74,8 +89,10 @@ class Repository(ABC):
 
 
 class FixtureRepository(Repository):
-    def __init__(self, fixtures_dir: Path):
+    def __init__(self, fixtures_dir: Path, config_dir: Optional[Path] = None):
         self.dir = Path(fixtures_dir)
+        self.config_dir = Path(config_dir) if config_dir else DEFAULT_CONFIG_DIR
+        self._tarife = {c["kod"] for c in load_config(self.config_dir, "tarife_siniflari").get("siniflar", [])}
         self._nodes: List[Dict[str, Any]] = self._load("nodes.json")
         self._items: Dict[str, List[Dict[str, Any]]] = self._load("items.json")
         self._item_series: Dict[str, Any] = self._load("item_series.json")
@@ -227,13 +244,26 @@ class FixtureRepository(Repository):
             "series": self._filter_series(it["series"], frm, to),
         }
 
+    def weak_classes(self) -> List[Dict[str, Any]]:
+        """sinif5 nodes whose representation is weak (see WEAK_* constants)."""
+        out = []
+        for n in self._nodes:
+            if n["seviye"] != "sinif5" or n["kod"] in self._tarife:
+                continue
+            kalem = len(self._items.get(n["kod"], []))
+            if n["agirlik"] >= WEAK_MIN_WEIGHT and kalem < WEAK_MAX_ITEMS:
+                out.append({"kod": n["kod"], "ad_tr": n["ad_tr"],
+                            "agirlik": n["agirlik"], "kalem": kalem})
+        out.sort(key=lambda x: -x["agirlik"])
+        return out
+
     def quality(self, days):
         q = self._quality
         sections = []
         for s in q["sections"]:
             sections.append({**s, "days": s["days"][-days:]})
         return {"sections": sections, "carry_classes": q["carry_classes"],
-                "exclusions": q["exclusions"]}
+                "exclusions": q["exclusions"], "weak_classes": self.weak_classes()}
 
     def basket_compute(self, weights, frm, to):
         total_w = sum(weights.values()) or 1.0

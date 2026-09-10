@@ -1,0 +1,11 @@
+{
+  "_not": "Tarifeli (idari fiyatlı) sınıflar: az kalemle temsil normaldir, 'temsil zayıf' etiketi uygulanmaz. Kodlar şu an FİKSTÜR kodlarıdır; Adım 1'de gerçek COICOP-2018 sinif5 kodlarıyla (örn. 04510 elektrik, 04520 doğal gaz) doldurulacak.",
+  "siniflar": [
+    { "kod": "02111", "ad_tr": "Sigara" },
+    { "kod": "04211", "ad_tr": "Elektrik" },
+    { "kod": "04212", "ad_tr": "Su" },
+    { "kod": "04213", "ad_tr": "Doğal gaz" },
+    { "kod": "07311", "ad_tr": "Şehir içi ulaşım" },
+    { "kod": "08211", "ad_tr": "Mobil tarife" }
+  ]
+}

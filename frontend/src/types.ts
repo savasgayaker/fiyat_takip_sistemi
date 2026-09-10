@@ -100,10 +100,18 @@ export interface Exclusion {
   neden: string;
   satir: number;
 }
+/** "Temsil zayıf": ağırlık ≥ 0,3 ∧ kalem < 10 ∧ tarife listesinde değil. */
+export interface WeakClass {
+  kod: string;
+  ad_tr: string;
+  agirlik: number;
+  kalem: number;
+}
 export interface QualityResponse {
   sections: QualitySection[];
   carry_classes: CarryClass[];
   exclusions: Exclusion[];
+  weak_classes: WeakClass[];
 }
 
 export interface BasketResult {

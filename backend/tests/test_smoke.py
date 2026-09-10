@@ -56,7 +56,15 @@ def test_item():
 
 
 def test_quality():
-    assert client.get("/api/quality", params={"days": 14}).status_code == 200
+    r = client.get("/api/quality", params={"days": 14})
+    assert r.status_code == 200
+    body = r.json()
+    assert len(body["sections"][0]["days"]) == 14
+    # "temsil zayıf": weight >= 0.3, items < 10, not in config/tarife_siniflari.json
+    weak = {w["kod"]: w for w in body["weak_classes"]}
+    assert set(weak) == {"11311", "07312"}  # Otel konaklama, Uçak bileti
+    assert all(w["kalem"] < 10 and w["agirlik"] >= 0.3 for w in weak.values())
+    assert "04211" not in weak  # Elektrik: few items but tariff-listed
 
 
 def test_baskets():

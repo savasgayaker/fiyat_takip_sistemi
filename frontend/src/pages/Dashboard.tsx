@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { TrendingUp, TrendingDown, Layers } from "lucide-react";
+import { TrendingDown, Layers, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,7 @@ import { getIndex, getContrib, getQuality } from "@/lib/api";
 import { useApp } from "@/context/AppContext";
 import { tr } from "@/i18n/tr";
 import { ACCENT } from "@/lib/palette";
-import { fmtNum, fmtPct, fmtSigned, fmtDate } from "@/lib/format";
+import { fmtNum, fmtPct, fmtDate } from "@/lib/format";
 import type { ExportTable } from "@/types";
 
 function StatCard({
@@ -93,6 +93,12 @@ export default function Dashboard() {
 
   const carryCount = meta?.carry_count ?? 0;
   const liveCount = (meta?.class_count ?? 0) - carryCount;
+  // Weight share of carried classes (Σ agirlik of carry_classes, percent of basket).
+  const carryWeight = useMemo(
+    () => (qualityQ.data?.carry_classes || []).reduce((a, c) => a + c.agirlik, 0),
+    [qualityQ.data],
+  );
+  const weakClasses = qualityQ.data?.weak_classes || [];
 
   const exportTables: ExportTable[] = useMemo(() => {
     const t: ExportTable[] = [];
@@ -255,6 +261,12 @@ export default function Dashboard() {
                     </div>
                     <div className="mt-1 text-xl font-bold tabular text-amber-600">
                       {carryCount}
+                      <span
+                        className="ml-1 text-xs font-medium text-muted-foreground"
+                        data-testid="carry-weight-share"
+                      >
+                        · %{fmtNum(carryWeight)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -266,6 +278,39 @@ export default function Dashboard() {
                         <span className="tabular">{c.gun} gün</span>
                       </div>
                     ))}
+                  </div>
+                ) : null}
+                {weakClasses.length ? (
+                  <div
+                    className="rounded-md border border-amber-300 bg-amber-50 p-3 text-xs dark:border-amber-700 dark:bg-amber-950/40"
+                    data-testid="weak-representation"
+                  >
+                    <div
+                      className="flex items-center gap-1.5 font-medium text-amber-700 dark:text-amber-400"
+                      title={tr.dashboard.weakReprHint}
+                    >
+                      <AlertTriangle className="h-3.5 w-3.5" /> {tr.dashboard.weakRepr}
+                    </div>
+                    <div className="mt-1.5 space-y-1 text-muted-foreground">
+                      {weakClasses.map((w) => (
+                        <div
+                          key={w.kod}
+                          className="flex items-center justify-between gap-2"
+                          data-testid={`weak-${w.kod}`}
+                        >
+                          <span className="truncate">
+                            <span className="mr-1 font-mono text-[10px]">{w.kod}</span>
+                            {w.ad_tr}
+                          </span>
+                          <span className="shrink-0 tabular">
+                            %{fmtNum(w.agirlik)} · {w.kalem} {tr.dashboard.items}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-1.5 text-[10px] text-muted-foreground">
+                      {tr.dashboard.weakReprHint}
+                    </div>
                   </div>
                 ) : null}
               </CardContent>

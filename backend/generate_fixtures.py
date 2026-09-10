@@ -195,12 +195,18 @@ kimlik_seq = 1000
 
 variant_suffix = ["", " (1 kg)", " (500 g)", " (adet)", " (paket)", " (1 lt)"]
 
+# Classes with deliberately few items: two trigger the "temsil zayıf" label
+# (Otel konaklama, Uçak bileti); the tariff-priced ones are exempt via
+# config/tarife_siniflari.json and must NOT be labelled.
+FEW_ITEMS = {"Otel konaklama": 5, "Uçak bileti": 6, "Elektrik": 3, "Su": 3,
+             "Doğal gaz": 3, "Sigara": 4, "Mobil tarife": 5, "Şehir içi ulaşım": 2}
+
 for s5kod, meta in leaf_meta.items():
     cad = meta["ad_tr"]
     base = BASE_PRICE.get(cad, 100)
-    n_items = rnd.randint(2, 4)
+    n_items = FEW_ITEMS.get(cad, rnd.randint(10, 16))
     leaf_item_count[s5kod] = n_items
-    srcs = rnd.sample(SOURCES, n_items)
+    srcs = [rnd.choice(SOURCES) for _ in range(n_items)]
     lst = []
     series_vals = leaf_index[s5kod]
     for k in range(n_items):
