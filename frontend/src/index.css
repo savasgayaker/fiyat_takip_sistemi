@@ -1,4 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+/* Inter is self-hosted: public/fonts/inter.css is linked from public/index.html
+   (kept out of the bundle so css-loader does not try to resolve the woff2 files). */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
