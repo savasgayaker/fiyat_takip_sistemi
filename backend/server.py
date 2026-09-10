@@ -1,18 +1,25 @@
 """DÇK-EÖS Fiyat Endeksi — FastAPI backend.
 
-Serves the price-index API from static JSON fixtures via a swappable
-Repository. Runs on localhost (0.0.0.0:8001 inside the container). No auth,
-no external calls, single machine.
+Read-only API over a swappable Repository. Binds to 127.0.0.1 only; no
+auth, no network calls, no telemetry, single machine.
+
+Data source selection:
+  --fixtures (CLI flag) or DCK_EOS_FIXTURES=1  -> FixtureRepository (JSON)
+  otherwise                                    -> SqliteRepository (fiyat_takip.sqlite)
+
+Until the nightly chain writes the endeks_* tables, the default is still
+the fixture repository; see `_select_repository`.
 """
 import os
+import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, FastAPI, File, Form, Query, UploadFile
 from fastapi.responses import Response
 from starlette.middleware.cors import CORSMiddleware
 
-from app.data.repository import FixtureRepository
+from app.data.repository import FixtureRepository, Repository
 from app.exports import build_excel, build_pdf, tuik_compare
 
 ROOT_DIR = Path(__file__).parent
@@ -20,8 +27,23 @@ ROOT_DIR = Path(__file__).parent
 FIXTURES_DIR = ROOT_DIR / "fixtures"
 METHOD_FILE = ROOT_DIR.parent / "METODOLOJI.md"
 
-# Single construction site — swap FixtureRepository for SqliteRepository later.
-repo = FixtureRepository(FIXTURES_DIR)
+HOST = "127.0.0.1"
+PORT = 8001
+# Only the local dev server and the Tauri shell may call the API.
+CORS_ORIGINS = ["http://localhost:3000", "tauri://localhost"]
+
+USE_FIXTURES = "--fixtures" in sys.argv or os.environ.get("DCK_EOS_FIXTURES") == "1"
+
+
+def _select_repository(use_fixtures: bool) -> Repository:
+    if use_fixtures:
+        return FixtureRepository(FIXTURES_DIR)
+    # TODO(phase 2): return SqliteRepository(<path from config/config.json>)
+    # once endeks_gunluk / endeks_sinif exist in fiyat_takip.sqlite.
+    return FixtureRepository(FIXTURES_DIR)
+
+
+repo: Repository = _select_repository(USE_FIXTURES)
 
 app = FastAPI(title="DÇK-EÖS Fiyat Endeksi")
 api = APIRouter(prefix="/api")
@@ -144,8 +166,15 @@ async def post_pdf(body: Dict[str, Any]):
 app.include_router(api)
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get("CORS_ORIGINS", "*").split(","),
-    allow_methods=["*"],
+    allow_credentials=False,
+    allow_origins=CORS_ORIGINS,
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    # `python server.py [--fixtures]` — the sidecar entry point; never 0.0.0.0.
+    uvicorn.run(app, host=HOST, port=PORT)

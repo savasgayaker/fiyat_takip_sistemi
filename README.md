@@ -8,13 +8,13 @@ Türkçe arayüz; kod ve tanımlayıcılar İngilizce.
 - **frontend/** — React + TypeScript, Recharts, Tailwind, shadcn/ui
 - **backend/** — Python 3.12 + FastAPI, salt-okunur veri erişimi
   - `app/data/repository.py` — tek arayüz; `FixtureRepository` (JSON fixtures)
-    ve `SqliteRepository` (faz-2 stub)
+    ve `SqliteRepository` (faz-2 stub); seçim `--fixtures` / `DCK_EOS_FIXTURES=1`
   - `fixtures/` — statik JSON mock veri (API sözleşmesine birebir uygun)
   - `app/exports.py` — Excel / PDF / TÜİK karşılaştırma
 - **desktop/** — Tauri iskeleti (`tauri.conf.json`)
 - **METODOLOJI.md** — yöntem/metodoloji (KaTeX ile render edilir)
 
-Backend yalnızca localhost'ta çalışır. Kimlik doğrulama, hesap, bulut, telemetri
+Backend yalnızca 127.0.0.1:8001 üzerinde çalışır; CORS yalnız `localhost:3000` ve `tauri://localhost`. Kimlik doğrulama, hesap, bulut, telemetri
 veya dış API çağrısı yoktur.
 
 ## Çalıştırma (web)
@@ -24,7 +24,7 @@ veya dış API çağrısı yoktur.
 cd backend
 pip install -r requirements.txt
 python generate_fixtures.py          # fixtures/*.json üretir (bir kez)
-uvicorn server:app --host 0.0.0.0 --port 8001 --reload
+uvicorn server:app --host 127.0.0.1 --port 8001 --reload   # DCK_EOS_FIXTURES=1 ile fikstür
 
 # Frontend
 cd frontend
