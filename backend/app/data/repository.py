@@ -170,6 +170,9 @@ class FixtureRepository(Repository):
         return out
 
     def sources(self, kod, frm, to):
+        # Fixture-only imitation of a per-source series (deterministic offset
+        # over member leaves). Real data comes from the nightly
+        # `endeks_sinif_kaynak` table; SqliteRepository must only read it.
         leaves = self._leaves_under(kod)
         # aggregate items by source across leaves of this node
         agg: Dict[str, Dict[str, Any]] = {}
@@ -294,10 +297,12 @@ class FixtureRepository(Repository):
 
 
 class SqliteRepository(Repository):
-    """Phase-2 stub. Will read a read-only fiyat_takip.sqlite file.
+    """Phase-2 stub. Will read a read-only fiyat_takip.sqlite file (`?mode=ro`).
 
-    Intentionally unimplemented — the fixture layer is swapped for this by
-    changing a single construction site in server.py.
+    Intentionally unimplemented. When filled in it must only read the
+    nightly tables (`endeks_gunluk`, `endeks_sinif`, `endeks_sinif_kaynak`,
+    `master_rc`, `tuik_agirlik_2026`, `v_gozlem_tufe`, `gozlem`) — no
+    Jevons/Laspeyres computation lives in this backend.
     """
 
     def __init__(self, db_path: str):

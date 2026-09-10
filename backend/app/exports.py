@@ -1,7 +1,13 @@
-"""Excel / PDF / TÜİK-compare helpers. Pure functions over repository data."""
+"""Excel / PDF / TÜİK-compare helpers.
+
+Pure functions over the public `Repository` interface only — no private
+attribute access (`repo._nodes` etc.) and no index math beyond what the
+repository already returns.
+"""
 from __future__ import annotations
 
 import io
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from openpyxl import Workbook, load_workbook
@@ -18,7 +24,9 @@ from reportlab.graphics.shapes import Drawing
 from reportlab.graphics.charts.lineplots import LinePlot
 from reportlab.graphics.widgets.markers import makeMarker
 
-FONT_DIR = "/usr/share/fonts/truetype/dejavu"
+# Bundled with the backend (backend/assets/fonts) so the PDF renders Turkish
+# glyphs identically on Windows, macOS and inside the PyInstaller sidecar.
+FONT_DIR = Path(__file__).resolve().parent.parent / "assets" / "fonts"
 _FONTS_READY = False
 
 
@@ -26,8 +34,8 @@ def _ensure_fonts():
     global _FONTS_READY
     if _FONTS_READY:
         return
-    pdfmetrics.registerFont(TTFont("DejaVu", f"{FONT_DIR}/DejaVuSans.ttf"))
-    pdfmetrics.registerFont(TTFont("DejaVu-Bold", f"{FONT_DIR}/DejaVuSans-Bold.ttf"))
+    pdfmetrics.registerFont(TTFont("DejaVu", str(FONT_DIR / "DejaVuSans.ttf")))
+    pdfmetrics.registerFont(TTFont("DejaVu-Bold", str(FONT_DIR / "DejaVuSans-Bold.ttf")))
     _FONTS_READY = True
 
 
@@ -94,14 +102,8 @@ def build_pdf(repo, frm: Optional[str], to: Optional[str]) -> bytes:
     toplam = repo.index("TOPLAM", "TOPLAM", frm, to)
     series = toplam.get("series", [])
     contrib = repo.contrib(frm, to, "bolum")
-    # top risers / fallers among classes (sinif5)
-    class_changes = []
-    for n in repo._nodes:
-        if n["seviye"] == "sinif5":
-            s = repo._filter_series(n["series"], frm, to)
-            if len(s) >= 2:
-                deg = (s[-1]["endeks"] / s[0]["endeks"] - 1) * 100
-                class_changes.append((n["ad_tr"], deg))
+    # top risers / fallers among classes (sinif5) — stored index ratios only
+    class_changes = [(c["ad_tr"], c["degisim"]) for c in repo.class_changes("sinif5", frm, to)]
     risers = sorted(class_changes, key=lambda x: x[1], reverse=True)[:10]
     fallers = sorted(class_changes, key=lambda x: x[1])[:10]
 
@@ -217,24 +219,22 @@ def tuik_compare(repo, file_bytes: bytes, frm: Optional[str], to: Optional[str])
     month = to or repo.meta()["data_date"]
 
     rows = []
-    total_w = sum(n["agirlik"] for n in repo._nodes if n["seviye"] == "bolum")
+    divisions = repo.class_changes("bolum", frm, to)
+    total_w = sum(d["agirlik"] for d in divisions)
     sum_tuik = sum_biz = 0.0
-    for n in repo._nodes:
-        if n["seviye"] != "bolum":
+    for d in divisions:
+        if d["kod"] not in tuik_map:
             continue
-        if n["kod"] not in tuik_map:
-            continue
-        s = repo._filter_series(n["series"], frm, to)
-        biz = (s[-1]["endeks"] / s[0]["endeks"] - 1) * 100 if len(s) >= 2 else 0.0
-        tuik = tuik_map[n["kod"]]
-        katki_fark = (biz - tuik) * n["agirlik"] / total_w
+        biz = d["degisim"]
+        tuik = tuik_map[d["kod"]]
+        katki_fark = (biz - tuik) * d["agirlik"] / total_w
         rows.append({
-            "kod": n["kod"], "ad_tr": n["ad_tr"], "tuik": round(tuik, 2),
+            "kod": d["kod"], "ad_tr": d["ad_tr"], "tuik": round(tuik, 2),
             "biz": round(biz, 2), "fark": round(biz - tuik, 2),
-            "agirlik": n["agirlik"], "katki_fark": round(katki_fark, 3),
+            "agirlik": d["agirlik"], "katki_fark": round(katki_fark, 3),
         })
-        sum_tuik += tuik * n["agirlik"] / total_w
-        sum_biz += biz * n["agirlik"] / total_w
+        sum_tuik += tuik * d["agirlik"] / total_w
+        sum_biz += biz * d["agirlik"] / total_w
     rows.sort(key=lambda x: abs(x["fark"]), reverse=True)
     return {
         "month": month,
