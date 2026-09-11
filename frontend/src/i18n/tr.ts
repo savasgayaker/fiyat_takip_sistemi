@@ -151,6 +151,8 @@ export const tr = {
     FRESH: "Taze",
     CARRY: "Devreden",
     CARRY_GUN_YOK: "Devreden (gün yok)",
+    ZINCIR_KOPUK: "Devreden (zincir kopuk)",
+    BASLANGIC: "Başlangıç",
   },
 };
 

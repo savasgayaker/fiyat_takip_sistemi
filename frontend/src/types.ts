@@ -1,11 +1,17 @@
 export type Seviye = "TOPLAM" | "bolum" | "grup" | "sinif4" | "sinif5";
-export type Durum = "FRESH" | "CARRY" | "CARRY_GUN_YOK";
+/** Sınıf-gün durumu (fiyat_takip.endeks v0.1):
+ *  FRESH — zincir ilerledi; CARRY — eşleşen kalem eşiğin altında, endeks taşındı;
+ *  CARRY_GUN_YOK — sınıfta o gün veri yok; ZINCIR_KOPUK — bugün veri var, önceki veri gününde yok;
+ *  BASLANGIC — pencerenin ilk günü. "Devreden" sayımı CARRY, CARRY_GUN_YOK ve ZINCIR_KOPUK'u kapsar. */
+export type Durum = "FRESH" | "CARRY" | "CARRY_GUN_YOK" | "ZINCIR_KOPUK" | "BASLANGIC";
+export const DEVREDEN_DURUMLAR: readonly Durum[] = ["CARRY", "CARRY_GUN_YOK", "ZINCIR_KOPUK"];
 
 export interface Meta {
   data_date: string;
   base_day: string;
   coverage_weight: number;
   class_count: number;
+  /** Son gün devreden sınıf sayısı (durum ∈ DEVREDEN_DURUMLAR). */
   carry_count: number;
   app_version: string;
   /** Method version of the published series (yontem_surumu), e.g. "v0.1". */
