@@ -32,8 +32,9 @@ def test_class_changes_respects_range(repo):
 
 
 def test_contrib_sums_to_total_change(repo):
-    """Σ katkı == weighted period change of the level (unit rule from CLAUDE.md)."""
+    """Σ katkı == π(t1,t2) of the level's weighted index (unit rule from CLAUDE.md §Kurallar)."""
     rows = repo.contrib(None, None, "bolum")
-    total_w = sum(r["agirlik"] for r in rows)
-    weighted = sum(r["degisim"] * r["agirlik"] for r in rows) / total_w
-    assert abs(sum(r["katki_puan"] for r in rows) - weighted) < 0.01
+    i1 = sum(r["agirlik"] * r["endeks_bas"] for r in rows)
+    i2 = sum(r["agirlik"] * r["endeks_bit"] for r in rows)
+    pi = 100.0 * (i2 / i1 - 1.0)
+    assert abs(sum(r["katki_puan"] for r in rows) - pi) < 0.01

@@ -1,4 +1,8 @@
 """Server wiring: localhost-only CORS, no wildcard."""
+import os
+
+os.environ["DCK_EOS_FIXTURES"] = "1"
+
 from fastapi.testclient import TestClient
 
 import server

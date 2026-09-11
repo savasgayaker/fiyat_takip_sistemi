@@ -5,26 +5,29 @@ auth, no network calls, no telemetry, single machine.
 
 Data source selection:
   --fixtures (CLI flag) or DCK_EOS_FIXTURES=1  -> FixtureRepository (JSON)
-  otherwise                                    -> SqliteRepository (fiyat_takip.sqlite)
-
-Until the nightly chain writes the endeks_* tables, the default is still
-the fixture repository; see `_select_repository`.
+  --db <path> or DCK_EOS_DB=<path>             -> SqliteRepository on that file
+  otherwise                                    -> SqliteRepository(config/config.json: db_path)
+If the SQLite file does not exist the server falls back to fixtures and says so.
 """
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, FastAPI, File, Form, Query, UploadFile
 from fastapi.responses import Response
 from starlette.middleware.cors import CORSMiddleware
 
-from app.data.repository import FixtureRepository, Repository
+from fastapi import HTTPException
+
+from app import models as M
+from app.data.repository import FixtureRepository, Repository, SqliteRepository, load_config
 from app.exports import build_excel, build_pdf, tuik_compare
 
 ROOT_DIR = Path(__file__).parent
 
 FIXTURES_DIR = ROOT_DIR / "fixtures"
+CONFIG_DIR = ROOT_DIR.parent / "config"
 METHOD_FILE = ROOT_DIR.parent / "METODOLOJI.md"
 
 HOST = "127.0.0.1"
@@ -35,15 +38,31 @@ CORS_ORIGINS = ["http://localhost:3000", "tauri://localhost"]
 USE_FIXTURES = "--fixtures" in sys.argv or os.environ.get("DCK_EOS_FIXTURES") == "1"
 
 
+def _db_path_from_args() -> Optional[str]:
+    if "--db" in sys.argv and sys.argv.index("--db") + 1 < len(sys.argv):
+        return sys.argv[sys.argv.index("--db") + 1]
+    return os.environ.get("DCK_EOS_DB") or load_config(CONFIG_DIR, "config").get("db_path")
+
+
 def _select_repository(use_fixtures: bool) -> Repository:
     if use_fixtures:
         return FixtureRepository(FIXTURES_DIR)
-    # TODO(phase 2): return SqliteRepository(<path from config/config.json>)
-    # once endeks_gunluk / endeks_sinif exist in fiyat_takip.sqlite.
+    db = _db_path_from_args()
+    if db and Path(db).exists():
+        cfg = load_config(CONFIG_DIR, "config")
+        print(f"[server] SQLite (salt-okunur): {db}")
+        return SqliteRepository(db, CONFIG_DIR, app_version=cfg.get("app_version", "1.0.0"))
+    print(f"[server] UYARI: SQLite bulunamadi ({db}); fikstur verisiyle basliyor. --db <yol> ya da config/config.json: db_path")
     return FixtureRepository(FIXTURES_DIR)
 
 
 repo: Repository = _select_repository(USE_FIXTURES)
+
+
+def _or_404(value, what: str):
+    if not value:
+        raise HTTPException(status_code=404, detail=f"{what} bulunamadı")
+    return value
 
 app = FastAPI(title="DÇK-EÖS Fiyat Endeksi")
 api = APIRouter(prefix="/api")
@@ -54,19 +73,19 @@ async def root():
     return {"message": "DÇK-EÖS Fiyat Endeksi API"}
 
 
-@api.get("/meta")
+@api.get("/meta", response_model=M.Meta)
 async def get_meta():
     return repo.meta()
 
 
-@api.get("/index")
+@api.get("/index", response_model=M.IndexResponse)
 async def get_index(level: str = "TOPLAM", kod: Optional[str] = None,
                     from_: Optional[str] = Query(None, alias="from"),
                     to: Optional[str] = None):
-    return repo.index(level, kod, from_, to)
+    return _or_404(repo.index(level, kod, from_, to), "seri")
 
 
-@api.get("/index/multi")
+@api.get("/index/multi", response_model=List[M.IndexResponse])
 async def get_index_multi(kodlar: str = "",
                           from_: Optional[str] = Query(None, alias="from"),
                           to: Optional[str] = None):
@@ -74,46 +93,46 @@ async def get_index_multi(kodlar: str = "",
     return repo.index_multi(kods, from_, to)
 
 
-@api.get("/tree")
+@api.get("/tree", response_model=List[M.TreeNode])
 async def get_tree():
     return repo.tree()
 
 
-@api.get("/contrib")
+@api.get("/contrib", response_model=List[M.Contrib])
 async def get_contrib(from_: Optional[str] = Query(None, alias="from"),
                       to: Optional[str] = None, level: str = "bolum"):
     return repo.contrib(from_, to, level)
 
 
-@api.get("/sources/{kod}")
+@api.get("/sources/{kod}", response_model=List[M.SourceSeries])
 async def get_sources(kod: str, from_: Optional[str] = Query(None, alias="from"),
                       to: Optional[str] = None):
     return repo.sources(kod, from_, to)
 
 
-@api.get("/items/{kod}")
+@api.get("/items/{kod}", response_model=M.ItemsResponse)
 async def get_items(kod: str, from_: Optional[str] = Query(None, alias="from"),
                     to: Optional[str] = None, page: int = 1, sort: str = "urun_adi"):
     return repo.items(kod, from_, to, page, sort)
 
 
-@api.get("/item/{kimlik}")
+@api.get("/item/{kimlik:path}", response_model=M.ItemDetail)
 async def get_item(kimlik: str, from_: Optional[str] = Query(None, alias="from"),
                    to: Optional[str] = None):
-    return repo.item(kimlik, from_, to)
+    return _or_404(repo.item(kimlik, from_, to), "kalem")
 
 
-@api.get("/quality")
+@api.get("/quality", response_model=M.QualityResponse)
 async def get_quality(days: int = 14):
     return repo.quality(days)
 
 
-@api.get("/baskets")
+@api.get("/baskets", response_model=M.Baskets)
 async def get_baskets():
     return repo.baskets()
 
 
-@api.get("/search")
+@api.get("/search", response_model=List[M.SearchHit])
 async def get_search(q: str = ""):
     if not q:
         return []
@@ -126,7 +145,7 @@ async def get_method():
     return {"markdown": text}
 
 
-@api.post("/basket/compute")
+@api.post("/basket/compute", response_model=M.BasketResult)
 async def post_basket(body: Dict[str, Any]):
     weights = body.get("weights", {})
     frm = body.get("from")
@@ -176,5 +195,5 @@ app.add_middleware(
 if __name__ == "__main__":
     import uvicorn
 
-    # `python server.py [--fixtures]` — the sidecar entry point; never 0.0.0.0.
+    # `python server.py [--fixtures | --db <yol>]` — the sidecar entry point; never 0.0.0.0.
     uvicorn.run(app, host=HOST, port=PORT)

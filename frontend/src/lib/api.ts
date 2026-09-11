@@ -83,7 +83,10 @@ export async function getItem(
   from: string,
   to: string,
 ): Promise<ItemDetail> {
-  return (await client.get(`/item/${kimlik}`, { params: { from, to } })).data;
+  // kimlik may contain spaces, "|" and Turkish letters (e.g. "k1:01010085|Migros").
+  return (
+    await client.get(`/item/${encodeURIComponent(kimlik)}`, { params: { from, to } })
+  ).data;
 }
 
 export async function getQuality(days = 14): Promise<QualityResponse> {

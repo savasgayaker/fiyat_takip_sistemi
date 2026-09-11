@@ -3,6 +3,9 @@
 Run:  cd backend && python -m pytest tests/test_smoke.py -q
 """
 import io
+import os
+
+os.environ["DCK_EOS_FIXTURES"] = "1"  # smoke tests are fixture-bound (len(tree)==13, 01111 ...)
 
 from fastapi.testclient import TestClient
 from openpyxl import Workbook

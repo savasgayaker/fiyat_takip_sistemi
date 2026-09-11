@@ -3,7 +3,7 @@
 A single `Repository` interface isolates the data source so the fixture
 implementation can be swapped for a real SQLite reader later without touching
 the API layer. `FixtureRepository` reads the static JSON fixtures;
-`SqliteRepository` is an intentionally empty stub for the next phase.
+`SqliteRepository` (sqlite_repository.py) reads the nightly tables.
 """
 from __future__ import annotations
 
@@ -182,10 +182,12 @@ class FixtureRepository(Repository):
         return build("TOPLAM")["children"]
 
     def contrib(self, frm, to, level):
-        total_w = sum(n["agirlik"] for n in self._nodes if n["seviye"] == level)
+        """katki_B = w_B (I_B(t2) - I_B(t1)) / sum_B w_B I_B(t1) (puan) — sums to the level's period change."""
+        rows = self.class_changes(level, frm, to)
+        payda = sum(c["agirlik"] * c["endeks_bas"] for c in rows)
         out = []
-        for c in self.class_changes(level, frm, to):
-            katki = c["degisim"] * c["agirlik"] / total_w
+        for c in rows:
+            katki = 100.0 * c["agirlik"] * (c["endeks_bit"] - c["endeks_bas"]) / payda if payda else 0.0
             out.append({**c, "katki_puan": round(katki, 3)})
         out.sort(key=lambda x: abs(x["katki_puan"]), reverse=True)
         return out
@@ -334,31 +336,5 @@ class FixtureRepository(Repository):
         return out[:30]
 
 
-class SqliteRepository(Repository):
-    """Phase-2 stub. Will read a read-only fiyat_takip.sqlite file (`?mode=ro`).
-
-    Intentionally unimplemented. When filled in it must only read the
-    nightly tables (`endeks_gunluk`, `endeks_sinif`, `endeks_sinif_kaynak`,
-    `master_rc`, `tuik_agirlik_2026`, `v_gozlem_tufe`, `gozlem`) — no
-    Jevons/Laspeyres computation lives in this backend.
-    """
-
-    def __init__(self, db_path: str):
-        self.db_path = db_path
-
-    def _todo(self):
-        raise NotImplementedError("SqliteRepository is a phase-2 stub.")
-
-    def meta(self): self._todo()
-    def index(self, level, kod, frm, to): self._todo()
-    def index_multi(self, kodlar, frm, to): self._todo()
-    def tree(self): self._todo()
-    def contrib(self, frm, to, level): self._todo()
-    def sources(self, kod, frm, to): self._todo()
-    def items(self, kod, frm, to, page, sort): self._todo()
-    def item(self, kimlik, frm, to): self._todo()
-    def quality(self, days): self._todo()
-    def basket_compute(self, weights, frm, to): self._todo()
-    def baskets(self): self._todo()
-    def search(self, q): self._todo()
-    def class_changes(self, level, frm, to): self._todo()
+# Real data source: reads the nightly tables of fiyat_takip.sqlite (read-only).
+from .sqlite_repository import SqliteRepository  # noqa: E402,F401

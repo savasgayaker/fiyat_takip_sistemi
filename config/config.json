@@ -1,0 +1,6 @@
+{
+  "_not": "Uygulama ayarlari. db_path: gece zincirinin yazdigi SQLite (salt-okunur acilir). Simdilik calisma kopyasi; GECE_KOSUSU.bat endeks_gece.py'ye baglandiktan sonra C:/FiyatTakip/db/fiyat_takip.sqlite yapin. fiyat_takip_kok: fiyat_takip.endeks paketinin bulundugu dizin (sepet disa aktarimi icin import edilir). CALISTIR.bat --db <yol> ile gecici olarak degistirilebilir.",
+  "db_path": "C:/FiyatTakip/db/fiyat_takip_kopya.sqlite",
+  "fiyat_takip_kok": "C:/FiyatTakip",
+  "app_version": "1.0.0"
+}

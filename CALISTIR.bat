@@ -1,10 +1,36 @@
 @echo off
 rem DCK-EOS Fiyat Endeksi - yerel gelistirme baslatici (Windows)
-rem Arka uc: backend\.venv icindeki Python, fikstur verisiyle, 127.0.0.1:8001
+rem Arka uc: backend\.venv icindeki Python, 127.0.0.1:8001
+rem         varsayilan veri: config\config.json -> db_path (salt-okunur SQLite)
+rem         CALISTIR.bat --db C:\yol\fiyat_takip.sqlite   baska bir DB
+rem         CALISTIR.bat --fixtures                      fikstur (JSON) verisi
 rem On yuz : CRA gelistirme sunucusu, http://localhost:3000
 rem Iki ayri pencere acilir; kapatmak icin pencereleri kapatin (Ctrl+C).
 setlocal EnableExtensions
 cd /d "%~dp0"
+
+set "BACKEND_ARGS="
+:ARGS
+if "%~1"=="" goto ARGS_DONE
+if /i "%~1"=="--fixtures" (
+    set "BACKEND_ARGS=--fixtures"
+    shift
+    goto ARGS
+)
+if /i "%~1"=="--db" (
+    if "%~2"=="" (
+        echo [HATA] --db icin bir dosya yolu verin.
+        exit /b 1
+    )
+    set "BACKEND_ARGS=--db "%~2""
+    shift
+    shift
+    goto ARGS
+)
+echo [UYARI] Bilinmeyen parametre: %~1
+shift
+goto ARGS
+:ARGS_DONE
 
 rem Gezgin'den cift tiklandiginda PATH bayat olabilir; Node ve corepack
 rem shim dizinlerini kendimiz ekleyelim.
@@ -55,8 +81,8 @@ if not defined YARN (
 )
 echo yarn: %YARN%
 
-echo Arka uc baslatiliyor (127.0.0.1:8001, --fixtures)...
-start "DCK-EOS arka uc :8001" cmd /k "cd /d "%~dp0backend" && "%PY%" server.py --fixtures"
+echo Arka uc baslatiliyor (127.0.0.1:8001 %BACKEND_ARGS%)...
+start "DCK-EOS arka uc :8001" cmd /k "cd /d "%~dp0backend" && "%PY%" server.py %BACKEND_ARGS%"
 
 echo On yuz baslatiliyor (localhost:3000)...
 start "DCK-EOS on yuz :3000" cmd /k "cd /d "%~dp0frontend" && set BROWSER=none&& %YARN% start"
