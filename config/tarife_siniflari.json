@@ -1,11 +1,149 @@
 {
-  "_not": "Tarifeli (idari fiyatlı) sınıflar: az kalemle temsil normaldir, 'temsil zayıf' etiketi uygulanmaz. Kodlar şu an FİKSTÜR kodlarıdır; Adım 1'de gerçek COICOP-2018 sinif5 kodlarıyla (örn. 04510 elektrik, 04520 doğal gaz) doldurulacak.",
+  "_not": "Tarifeli (idari/liste fiyatli) siniflar: az kalemle temsil normaldir, 'temsil zayif' etiketi uygulanmaz. Kaynak: YAPISAL kisimlarin (6, 16-21) ve K9 pompa/ucret listelerinin besledigi COICOP-2018 sinif5 kodlari (fiyat_takip_kopya.sqlite, 11.09.2026). Otel 11201, ucak 07331, sigorta 121xx, paket tur 09800 bilincli olarak DISARIDA (piyasa fiyati; az kalem = temsil zayif). '— onay?' isaretliler tartismali.",
   "siniflar": [
-    { "kod": "02111", "ad_tr": "Sigara" },
-    { "kod": "04211", "ad_tr": "Elektrik" },
-    { "kod": "04212", "ad_tr": "Su" },
-    { "kod": "04213", "ad_tr": "Doğal gaz" },
-    { "kod": "07311", "ad_tr": "Şehir içi ulaşım" },
-    { "kod": "08211", "ad_tr": "Mobil tarife" }
+    {
+      "kod": "04510",
+      "ad_tr": "Elektrik",
+      "kaynak": "K6 Enerji",
+      "gerekce": "EPDK tarifesi"
+    },
+    {
+      "kod": "04521",
+      "ad_tr": "Doğalgaz ve ilgili abonelik ücretleri",
+      "kaynak": "K6 Enerji / K20",
+      "gerekce": "BOTAS-dagitim tarifesi"
+    },
+    {
+      "kod": "04522",
+      "ad_tr": "Tüpgaz (ev tüpü)",
+      "kaynak": "K6 Enerji",
+      "gerekce": "tup gaz tarifesi"
+    },
+    {
+      "kod": "07221",
+      "ad_tr": "Motorin (Mazot)",
+      "kaynak": "K9 Nihai Panel",
+      "gerekce": "pompa fiyati (gunluk ilan)"
+    },
+    {
+      "kod": "07222",
+      "ad_tr": "Benzin",
+      "kaynak": "K9 Nihai Panel",
+      "gerekce": "pompa fiyati (gunluk ilan)"
+    },
+    {
+      "kod": "07223",
+      "ad_tr": "Kişisel ulaşım araçları için diğer yakıtlar",
+      "kaynak": "K9 Nihai Panel",
+      "gerekce": "LPG pompa fiyati"
+    },
+    {
+      "kod": "07242",
+      "ad_tr": "Geçiş ücretleri",
+      "kaynak": "K18 Ulasim",
+      "gerekce": "otoyol/kopru gecis ucretleri (idari)"
+    },
+    {
+      "kod": "07322",
+      "ad_tr": "Taksi ve sürücüsü ile birlikte kiralanmış taşıtlarla yolcu taşımacılığı",
+      "kaynak": "K18 Ulasim / K22",
+      "gerekce": "UKOME taksi tarifesi"
+    },
+    {
+      "kod": "07323",
+      "ad_tr": "Okul servisleri",
+      "kaynak": "K22 Ek Kaynaklar",
+      "gerekce": "UKOME okul servisi tarifesi"
+    },
+    {
+      "kod": "07340",
+      "ad_tr": "Deniz ve iç sularda yolcu taşımacılığı",
+      "kaynak": "K18 Ulasim",
+      "gerekce": "deniz yolu tarifesi"
+    },
+    {
+      "kod": "10400",
+      "ad_tr": "Yükseköğretim eğitimi",
+      "kaynak": "K9 Nihai Panel",
+      "gerekce": "yuksekogretim ucret listesi"
+    },
+    {
+      "kod": "12220",
+      "ad_tr": "Mevduat kabul eden kuruluşlara yapılan doğrudan ödemeler",
+      "kaynak": "K17 Sigorta / Finans",
+      "gerekce": "banka ucret tarifeleri"
+    },
+    {
+      "kod": "12291",
+      "ad_tr": "Havale ücretleri",
+      "kaynak": "K17 Sigorta / Finans",
+      "gerekce": "havale/EFT ucret tarifeleri"
+    },
+    {
+      "kod": "13902",
+      "ad_tr": "Dini hizmetler",
+      "kaynak": "K20 Kalan Hizmetler",
+      "gerekce": "Diyanet/kamu tarifesi"
+    },
+    {
+      "kod": "09470",
+      "ad_tr": "Şans oyunları",
+      "kaynak": "K19 Kultur / Turizm",
+      "gerekce": "sans oyunlari bilet fiyati (idari)"
+    },
+    {
+      "kod": "09462",
+      "ad_tr": "Spor faaliyetlerine katılım",
+      "kaynak": "K19 Kultur / Turizm",
+      "gerekce": "spor tesisi tarifesi"
+    },
+    {
+      "kod": "09610",
+      "ad_tr": "Sinema, tiyatro ve konser salonlarında verilen hizmetler",
+      "kaynak": "K19 Kultur / Turizm",
+      "gerekce": "sinema/tiyatro bilet tarifesi"
+    },
+    {
+      "kod": "04541",
+      "ad_tr": "Kömür, kömür briketi ve turba",
+      "kaynak": "K20 Kalan Hizmetler",
+      "gerekce": "komur tarifesi (tek kaynak)"
+    },
+    {
+      "kod": "04542",
+      "ad_tr": "Yakacak odun, peletler ve briketler dahil",
+      "kaynak": "K20 Kalan Hizmetler",
+      "gerekce": "odun/pelet liste fiyati (tek kaynak)"
+    },
+    {
+      "kod": "05330",
+      "ad_tr": "Ev aletlerinin onarımı, kurulumu ve kiralanması",
+      "kaynak": "K20 Kalan Hizmetler",
+      "gerekce": "servis ucret tarifesi"
+    },
+    {
+      "kod": "08350",
+      "ad_tr": "Bilgi ve iletişim ekipmanlarının onarımı ve kiralanması",
+      "kaynak": "K20 Kalan Hizmetler",
+      "gerekce": "servis ucret tarifesi"
+    },
+    {
+      "kod": "08392",
+      "ad_tr": "Görsel-işitsel içeriklerin aboneliği, kiralanması ve çevrim içi yayın hizmetleri",
+      "kaynak": "K20 Kalan Hizmetler",
+      "gerekce": "abonelik liste fiyati (tek kaynak)"
+    },
+    {
+      "kod": "07491",
+      "ad_tr": "Nakliye ve depolama hizmetleri",
+      "kaynak": "K21 Son Bosluklar",
+      "gerekce": "nakliye tarifesi (tek kaynak) — onay?"
+    },
+    {
+      "kod": "11112",
+      "ad_tr": "Lokantalar, kafeler ve benzerleri, sınırlı sunum hizmeti verenler",
+      "kaynak": "K21 Son Bosluklar",
+      "gerekce": "menu liste fiyati (3 kalem) — onay?"
+    }
   ]
 }

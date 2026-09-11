@@ -1,29 +1,207 @@
 {
-  "_not": "Kısım (MASTER koşusu) adları ve beslediği COICOP bölümleri. DB'de karşılığı yok; Kalite ekranı satır etiketi ve rozetleri buradan okur. Adlar şu an YER TUTUCU (uydurma şehir/kanal); Adım 1'de gerçek kısım adları ve bölüm listeleriyle doldurulacak.",
+  "_not": "Kisim (MASTER kosusu) adlari, sinifi ve beslediği COICOP bolumleri. Adlar C:\\FiyatTakip\\master_paket\\config\\kisimlar.json (= DB kisim tablosu) kanonu; bolumler gozlem_coicop'tan (kisim gozlemlerinin >= %0,5'i; 11.09.2026 kopyasi). sinif: DINAMIK (kaziyici) / YAPISAL (tarife-idari kaynak).",
   "kisimlar": {
-    "1":  { "ad": "İstanbul - Market",     "bolumler": ["01", "02", "05", "13"] },
-    "2":  { "ad": "Ankara - Market",       "bolumler": ["01", "02", "05", "13"] },
-    "3":  { "ad": "İzmir - Market",        "bolumler": ["01", "02", "13"] },
-    "4":  { "ad": "Bursa - Hal",           "bolumler": ["01"] },
-    "5":  { "ad": "Adana - Market",        "bolumler": ["01", "05"] },
-    "6":  { "ad": "Antalya - Market",      "bolumler": ["01", "13"] },
-    "7":  { "ad": "Konya - Akaryakıt",     "bolumler": ["07"] },
-    "8":  { "ad": "Gaziantep - Market",    "bolumler": ["01"] },
-    "9":  { "ad": "Kayseri - Market",      "bolumler": ["01", "05"] },
-    "10": { "ad": "Samsun - Market",       "bolumler": ["01"] },
-    "11": { "ad": "Trabzon - Market",      "bolumler": ["01", "13"] },
-    "12": { "ad": "Diyarbakır - Akaryakıt","bolumler": ["07"] },
-    "13": { "ad": "Eskişehir - Market",    "bolumler": ["01", "03"] },
-    "14": { "ad": "Şanlıurfa - Market",    "bolumler": ["01"] },
-    "15": { "ad": "Mersin - Market",       "bolumler": ["01", "05"] },
-    "16": { "ad": "Kocaeli - Market",      "bolumler": ["01", "08", "09"] },
-    "17": { "ad": "Denizli - Market",      "bolumler": ["01", "03"] },
-    "18": { "ad": "Malatya - Market",      "bolumler": ["01"] },
-    "19": { "ad": "Erzurum - Kira",        "bolumler": ["04"] },
-    "20": { "ad": "Sivas - Market",        "bolumler": ["01"] },
-    "21": { "ad": "Manisa - Market",       "bolumler": ["01", "06"] },
-    "22": { "ad": "Balıkesir - Market",    "bolumler": ["01", "10", "11"] },
-    "23": { "ad": "Van - Market",          "bolumler": ["01", "12"] },
-    "24": { "ad": "Aydın - Market",        "bolumler": ["01", "13"] }
+    "1": {
+      "ad": "Market / Gida",
+      "sinif": "DINAMIK",
+      "bolumler": [
+        "01",
+        "05",
+        "09",
+        "13"
+      ]
+    },
+    "2": {
+      "ad": "N11 / Dayanikli Tuketim",
+      "sinif": "DINAMIK",
+      "bolumler": [
+        "01",
+        "03",
+        "05",
+        "07",
+        "08",
+        "09",
+        "13"
+      ]
+    },
+    "3": {
+      "ad": "Arac / Konut",
+      "sinif": "DINAMIK",
+      "bolumler": [
+        "07"
+      ]
+    },
+    "4": {
+      "ad": "Yemek / Hizmet",
+      "sinif": "DINAMIK",
+      "bolumler": [
+        "03",
+        "11",
+        "13"
+      ]
+    },
+    "5": {
+      "ad": "Perakende",
+      "sinif": "DINAMIK",
+      "bolumler": [
+        "03",
+        "05",
+        "06",
+        "09"
+      ]
+    },
+    "6": {
+      "ad": "Enerji",
+      "sinif": "YAPISAL",
+      "bolumler": [
+        "04"
+      ]
+    },
+    "7": {
+      "ad": "Birlesik Panel (Otobus/Ucak/Otel/Sigorta)",
+      "sinif": "DINAMIK",
+      "bolumler": [
+        "07",
+        "11"
+      ]
+    },
+    "8": {
+      "ad": "Birlesik Panel (Saglik/Bakim/Eglence)",
+      "sinif": "DINAMIK",
+      "bolumler": [
+        "03",
+        "06",
+        "07",
+        "13"
+      ]
+    },
+    "9": {
+      "ad": "Nihai Panel",
+      "sinif": "DINAMIK",
+      "bolumler": [
+        "07",
+        "08",
+        "10"
+      ]
+    },
+    "10": {
+      "ad": "Nihai Panel II",
+      "sinif": "DINAMIK",
+      "bolumler": [
+        "08",
+        "13"
+      ]
+    },
+    "11": {
+      "ad": "Alkol / Tutun",
+      "sinif": "DINAMIK",
+      "bolumler": [
+        "02"
+      ]
+    },
+    "12": {
+      "ad": "Giyim / Ayakkabi",
+      "sinif": "DINAMIK",
+      "bolumler": [
+        "03"
+      ]
+    },
+    "13": {
+      "ad": "Kira",
+      "sinif": "DINAMIK",
+      "bolumler": [
+        "04"
+      ]
+    },
+    "14": {
+      "ad": "Restoran",
+      "sinif": "DINAMIK",
+      "bolumler": [
+        "11"
+      ]
+    },
+    "15": {
+      "ad": "Sifir Otomobil",
+      "sinif": "DINAMIK",
+      "bolumler": [
+        "07"
+      ]
+    },
+    "16": {
+      "ad": "Saglik",
+      "sinif": "YAPISAL",
+      "bolumler": [
+        "06"
+      ]
+    },
+    "17": {
+      "ad": "Sigorta / Finans",
+      "sinif": "YAPISAL",
+      "bolumler": [
+        "12"
+      ]
+    },
+    "18": {
+      "ad": "Ulasim",
+      "sinif": "YAPISAL",
+      "bolumler": [
+        "07"
+      ]
+    },
+    "19": {
+      "ad": "Kultur / Turizm",
+      "sinif": "YAPISAL",
+      "bolumler": [
+        "09"
+      ]
+    },
+    "20": {
+      "ad": "Kalan Hizmetler",
+      "sinif": "YAPISAL",
+      "bolumler": [
+        "03",
+        "04",
+        "05",
+        "06",
+        "08",
+        "13"
+      ]
+    },
+    "21": {
+      "ad": "Son Bosluklar",
+      "sinif": "YAPISAL",
+      "bolumler": [
+        "06",
+        "07",
+        "11"
+      ]
+    },
+    "22": {
+      "ad": "Ek Kaynaklar (COICOP capraz)",
+      "sinif": "DINAMIK",
+      "bolumler": [
+        "05",
+        "07",
+        "09",
+        "10",
+        "11"
+      ]
+    },
+    "23": {
+      "ad": "Tarim / Taze Gida",
+      "sinif": "DINAMIK",
+      "bolumler": [
+        "01"
+      ]
+    },
+    "24": {
+      "ad": "Market Fiyati Derin Evren (pilot)",
+      "sinif": "DINAMIK",
+      "bolumler": [
+        "01",
+        "05",
+        "13"
+      ]
+    }
   }
 }

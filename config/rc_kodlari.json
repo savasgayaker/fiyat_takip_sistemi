@@ -1,10 +1,53 @@
 {
-  "_not": "MASTER rc (return code) kanonu. Kalite ekranındaki Kısım × Gün ızgarası renkleri ve tooltip anlamları buradan okunur; UI'da sabit eşleme yoktur. Yeni rc eklenirse buraya satır eklemek yeter.",
+  "_not": "MASTER cikis kodu sozlesmesi (C:\\FiyatTakip\\master_paket\\master\\ortak.py RC_ADI; kisim paketleriyle ayni). Kalite ekranindaki Kisim x Gun izgarasi renkleri ve tooltip anlamlari buradan okunur; UI'da sabit esleme yoktur. -1 uygulamaya ozgu: master_rc tablosunda o gun/kisim icin kayit yok.",
   "kodlar": [
-    { "rc": 0, "ad": "Başarılı", "aciklama": "Koşu tamamlandı, veri yüklendi", "renk": "#10B981" },
-    { "rc": 1, "ad": "Uyarı", "aciklama": "Tamamlandı, kalite bayraklı satırlar var", "renk": "#FBBF24" },
-    { "rc": 4, "ad": "Robots reddi", "aciklama": "Kaynak robots/oran sınırı nedeniyle reddetti; kısmi veri", "renk": "#F97316" },
-    { "rc": 5, "ad": "Veri yok", "aciklama": "Koşu bitti ama hiç gözlem gelmedi", "renk": "#DC2626" },
-    { "rc": 6, "ad": "Hata", "aciklama": "Koşu hatayla kesildi (log'a bak)", "renk": "#7F1D1D" }
+    {
+      "rc": 0,
+      "ad": "BASARILI",
+      "aciklama": "Kosu tamamlandi, kalici katman guncellendi",
+      "renk": "#10B981"
+    },
+    {
+      "rc": 1,
+      "ad": "BASARILI_KISMI",
+      "aciklama": "Tamamlandi; en az bir kaynak/adim kismi (carry gunu, HARD_GAP vb.)",
+      "renk": "#FBBF24"
+    },
+    {
+      "rc": 2,
+      "ad": "HATA",
+      "aciklama": "Sozlesme disi cikis kodu (paket kendi kodunu verdi; META_SOZLESME_DISI_RC)",
+      "renk": "#A855F7"
+    },
+    {
+      "rc": 3,
+      "ad": "HATA",
+      "aciklama": "Sozlesme disi cikis kodu (paket kendi kodunu verdi; META_SOZLESME_DISI_RC)",
+      "renk": "#A855F7"
+    },
+    {
+      "rc": 4,
+      "ad": "INCELEME",
+      "aciklama": "Config imzasi degisti / karar bekliyor; kosu yapilmamis olabilir (CONFIG_KABUL)",
+      "renk": "#F97316"
+    },
+    {
+      "rc": 5,
+      "ad": "BASARISIZ",
+      "aciklama": "Kosu basarisiz; kalici katman guncellenmedi (runlar\\<run_id>\\kisimNN_cikti.log)",
+      "renk": "#DC2626"
+    },
+    {
+      "rc": 6,
+      "ad": "VERI_KOKU_YAZILAMADI",
+      "aciklama": "Veri koku yazilamadi (disk/izin)",
+      "renk": "#7F1D1D"
+    },
+    {
+      "rc": -1,
+      "ad": "KAYIT_YOK",
+      "aciklama": "master_rc'de bu gun/kisim icin kayit yok (kosu atlandi ya da durum dosyasi eksik)",
+      "renk": "#94A3B8"
+    }
   ]
 }
