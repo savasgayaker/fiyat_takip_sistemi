@@ -3,7 +3,9 @@
 Run:  cd backend && python -m pytest tests/test_smoke.py -q
 """
 import io
+import json
 import os
+from pathlib import Path
 
 os.environ["DCK_EOS_FIXTURES"] = "1"  # smoke tests are fixture-bound (len(tree)==13, 01111 ...)
 
@@ -13,6 +15,8 @@ from openpyxl import Workbook
 from server import app
 
 client = TestClient(app)
+FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
+CONFIG = Path(__file__).resolve().parents[2] / "config"
 
 
 def test_meta():
@@ -85,14 +89,21 @@ def test_quality():
     assert r.status_code == 200
     body = r.json()
     assert len(body["sections"][0]["days"]) == 14
-    # "temsil zayıf": weight >= 0.3, items < 10, not in config/tarife_siniflari.json
+    # "temsil zayıf": weight >= 0.3, items < 10, not in config/tarife_siniflari.json.
+    # Expectations are derived from the fixture + the real config (no fixture-coded tariff codes).
+    tarife = {c["kod"] for c in json.loads((CONFIG / "tarife_siniflari.json").read_text(encoding="utf-8"))["siniflar"]}
+    items = json.loads((FIXTURES / "items.json").read_text(encoding="utf-8"))
+    nodes = json.loads((FIXTURES / "nodes.json").read_text(encoding="utf-8"))
+    expected = {n["kod"] for n in nodes if n["seviye"] == "sinif5" and n["agirlik"] >= 0.3
+                and len(items.get(n["kod"], [])) < 10 and n["kod"] not in tarife}
     weak = {w["kod"]: w for w in body["weak_classes"]}
-    assert set(weak) == {"11311", "07312"}  # Otel konaklama, Uçak bileti
+    assert set(weak) == expected and {"11311", "07312"} <= set(weak)  # Otel konaklama, Uçak bileti
     assert all(w["kalem"] < 10 and w["agirlik"] >= 0.3 for w in weak.values())
-    assert "04211" not in weak  # Elektrik: few items but tariff-listed
+    assert not (set(weak) & tarife)
     # rc canon and section metadata come from config/, not from code
+    rc_cfg = {r["rc"] for r in json.loads((CONFIG / "rc_kodlari.json").read_text(encoding="utf-8"))["kodlar"]}
     rcs = {r["rc"]: r for r in body["rc_kodlari"]}
-    assert set(rcs) == {0, 1, 4, 5, 6}
+    assert set(rcs) == rc_cfg and {0, 1, 4, 5, 6} <= set(rcs)
     assert all(r["renk"].startswith("#") and r["ad"] for r in rcs.values())
     s1 = body["sections"][0]
     assert s1["kisim_no"] == 1 and s1["ad"] and isinstance(s1["bolumler"], list)
