@@ -94,6 +94,11 @@ class SqliteRepository(Repository):
         self._con = sqlite3.connect(f"file:{self.db_path.resolve().as_posix()}?mode=ro", uri=True,
                                     check_same_thread=False)
         self._con.row_factory = sqlite3.Row
+        eksik = [t for t in ("endeks_gunluk", "endeks_sinif", "endeks_sinif_kaynak", "master_rc", "tuik_agirlik_2026")
+                 if not self._con.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (t,)).fetchone()]
+        if eksik:
+            self._con.close()
+            raise RuntimeError(f"endeks tablolari yok: {', '.join(eksik)} — once C:\\FiyatTakip\\endeks_yeniden_hesapla.py kosturun")
         self._tarife = {c["kod"] for c in load_config(self.config_dir, "tarife_siniflari").get("siniflar", [])}
         self._kisimlar: Dict[str, Dict[str, Any]] = load_config(self.config_dir, "kisim_adlari").get("kisimlar", {})
         self._rc_kodlari: List[Dict[str, Any]] = load_config(self.config_dir, "rc_kodlari").get("kodlar", [])

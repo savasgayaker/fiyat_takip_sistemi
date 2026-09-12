@@ -81,6 +81,10 @@ if not defined YARN (
 )
 echo yarn: %YARN%
 
+rem ---- 8001 / 3000 uzerinde eski bir surec varsa sorup kapat
+call :PORT_KONTROL 8001 "arka uc"
+call :PORT_KONTROL 3000 "on yuz"
+
 echo Arka uc baslatiliyor (127.0.0.1:8001 %BACKEND_ARGS%)...
 start "DCK-EOS arka uc :8001" cmd /k "cd /d "%~dp0backend" && "%PY%" server.py %BACKEND_ARGS%"
 
@@ -106,3 +110,21 @@ start "" http://localhost:3000
 echo Tarayici acildi. Bu pencere kapatilabilir.
 timeout /t 3 >nul
 endlocal
+exit /b 0
+
+:PORT_KONTROL
+rem %1 port, %2 aciklama. LISTENING durumundaki PID'i bulur, kullaniciya sorar, onayla kapatir.
+set "PORT_PID="
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr /c:":%~1 " ^| findstr LISTENING') do set "PORT_PID=%%a"
+if not defined PORT_PID goto :eof
+if "%PORT_PID%"=="0" goto :eof
+echo [UYARI] %~1 portu (%~2) PID %PORT_PID% tarafindan kullaniliyor (eski oturum olabilir).
+choice /c EH /n /m "Kapatilsin mi? [E]vet / [H]ayir: "
+if errorlevel 2 (
+    echo Devam ediliyor; %~1 portu dolu kalirsa yeni surec baslamaz.
+    goto :eof
+)
+taskkill /pid %PORT_PID% /t /f >nul 2>nul
+if errorlevel 1 (echo [UYARI] PID %PORT_PID% kapatilamadi.) else (echo PID %PORT_PID% kapatildi.)
+timeout /t 1 /nobreak >nul
+goto :eof

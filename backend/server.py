@@ -50,8 +50,13 @@ def _select_repository(use_fixtures: bool) -> Repository:
     db = _db_path_from_args()
     if db and Path(db).exists():
         cfg = load_config(CONFIG_DIR, "config")
+        try:
+            repo_ = SqliteRepository(db, CONFIG_DIR, app_version=cfg.get("app_version", "1.0.0"))
+        except Exception as e:  # noqa: BLE001 — tablolar henuz yoksa uygulama yine acilsin
+            print(f"[server] UYARI: SQLite acilamadi ({db}): {e}; fikstur verisiyle basliyor.")
+            return FixtureRepository(FIXTURES_DIR)
         print(f"[server] SQLite (salt-okunur): {db}")
-        return SqliteRepository(db, CONFIG_DIR, app_version=cfg.get("app_version", "1.0.0"))
+        return repo_
     print(f"[server] UYARI: SQLite bulunamadi ({db}); fikstur verisiyle basliyor. --db <yol> ya da config/config.json: db_path")
     return FixtureRepository(FIXTURES_DIR)
 
