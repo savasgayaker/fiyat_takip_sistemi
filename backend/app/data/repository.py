@@ -17,6 +17,8 @@ DEFAULT_CONFIG_DIR = Path(__file__).resolve().parents[3] / "config"
 
 # Preset whose weights come from the stored index, not from config/sepetler.json.
 TUIK_SEPET = "TÜİK 2026"
+# Class states in which the index was carried rather than chained (see app/models.py).
+DEVREDEN_DURUMLAR = ("CARRY", "CARRY_GUN_YOK", "ZINCIR_KOPUK")
 
 # "Temsil zayıf" rule (handover note §5): weight >= 0.3, items < 10, not a tariff class.
 WEAK_MIN_WEIGHT = 0.3
@@ -179,7 +181,7 @@ class FixtureRepository(Repository):
                 [n for n in self._nodes if n.get("parent") == kod],
                 key=lambda x: x["kod"],
             )
-            return {
+            out = {
                 "kod": node["kod"],
                 "ad_tr": node["ad_tr"],
                 "seviye": node["seviye"],
@@ -187,7 +189,14 @@ class FixtureRepository(Repository):
                 "degisim_donem": self._period_change(node, None, None),
                 "children": [build(c["kod"]) for c in children],
             }
+            if node["seviye"] == "sinif5" and node.get("series"):
+                durum = node["series"][-1].get("durum") or "FRESH"
+                out["durum"] = durum
+                out["devreden_gun"] = carry_gun.get(node["kod"], 1) if durum in DEVREDEN_DURUMLAR else 0
+                out["tarife"] = node["kod"] in self._tarife
+            return out
 
+        carry_gun = {c["kod"]: int(c.get("gun", 1)) for c in self._quality.get("carry_classes", [])}
         return build("TOPLAM")["children"]
 
     def contrib(self, frm, to, level):

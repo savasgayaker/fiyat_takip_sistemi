@@ -7,8 +7,32 @@ export interface Range {
   to: string;
 }
 
-/** Compute a date range for a preset given the data date (ISO). */
+/** Bazdan önce endeks tanımsız: başlangıç baz gününden erken olamaz, bitiş veri tarihini aşamaz. */
+export function clampRange(range: Range, baseDay: string, dataDate: string): Range & { clamped: boolean } {
+  let { from, to } = range;
+  let clamped = false;
+  if (baseDay && from < baseDay) {
+    from = baseDay;
+    clamped = true;
+  }
+  if (dataDate && to > dataDate) to = dataDate;
+  if (from > to) from = to;
+  return { from, to, clamped };
+}
+
+/** Compute a date range for a preset given the data date (ISO); start never before the base day. */
 export function presetRange(
+  key: PresetKey,
+  dataDate: string,
+  baseDay: string,
+): Range {
+  const r = presetRangeRaw(key, dataDate, baseDay);
+  const c = clampRange(r, baseDay, dataDate);
+  return { from: c.from, to: c.to };
+}
+
+/** The preset's own window before the base-day rule (used to tell the user it was clamped). */
+export function presetRangeRaw(
   key: PresetKey,
   dataDate: string,
   baseDay: string,

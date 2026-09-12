@@ -21,7 +21,7 @@ const presets: { key: PresetKey; label: string; hot: string }[] = [
 ];
 
 export function DateRangePicker() {
-  const { from, to, preset, setPreset, setCustomRange, meta } = useApp();
+  const { from, to, preset, setPreset, setCustomRange, meta, fromClamped, requestedFrom } = useApp();
 
   return (
     <Popover>
@@ -36,6 +36,15 @@ export function DateRangePicker() {
           <span className="tabular">
             {fmtDate(from)} – {fmtDate(to)}
           </span>
+          {fromClamped && (
+            <span
+              className="rounded bg-amber-100 px-1 text-[10px] leading-4 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
+              title={tr.presets.clampedNote}
+              data-testid="range-clamped-badge"
+            >
+              {tr.presets.clampedShort}
+            </span>
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-72" align="end">
@@ -57,6 +66,11 @@ export function DateRangePicker() {
               </Button>
             ))}
           </div>
+          {fromClamped && (
+            <p className="text-[11px] text-amber-700 dark:text-amber-300" data-testid="range-clamped-note">
+              {tr.presets.clampedNote} ({tr.presets.requested}: {fmtDate(requestedFrom)} → {fmtDate(meta?.base_day)})
+            </p>
+          )}
           <div className="space-y-2 border-t border-border pt-3">
             <div className="grid grid-cols-2 gap-2">
               <div>

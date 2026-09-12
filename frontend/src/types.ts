@@ -48,6 +48,10 @@ export interface TreeNode {
   agirlik: number;
   degisim_donem: number;
   children: TreeNode[];
+  /** Yaprak sınıflarda: veri tarihindeki durum, ardışık devreden gün sayısı, tarife listesinde mi. */
+  durum?: Durum;
+  devreden_gun?: number;
+  tarife?: boolean;
 }
 
 export interface Contrib {

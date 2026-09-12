@@ -48,6 +48,10 @@ class TreeNode(BaseModel):
     agirlik: float
     degisim_donem: float
     children: List["TreeNode"]
+    # Leaf classes only: state on the data date, consecutive carried days, tariff-listed flag.
+    durum: Optional[Durum] = None
+    devreden_gun: Optional[int] = None
+    tarife: Optional[bool] = None
 
 
 class ClassChange(BaseModel):

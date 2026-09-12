@@ -50,6 +50,9 @@ export const tr = {
     son30: "Son 30 gün",
     tuikAy: "TÜİK ay penceresi",
     ozel: "Özel",
+    clampedShort: "baz",
+    clampedNote: "Başlangıç baz gününe çekildi; bazdan önceki günler için endeks tanımsız.",
+    requested: "istenen",
   },
   dashboard: {
     title: "Pano",
@@ -73,6 +76,9 @@ export const tr = {
   breakdown: {
     title: "Kırılım (COICOP)",
     tree: "Sınıflandırma Ağacı",
+    carried: "devreden",
+    carriedDays: "gün",
+    tariff: "tarife",
     selectNode: "İncelemek için ağaçtan bir düğüm seçin",
     maxSeries: "En fazla 6 seri seçebilirsiniz",
     stats: "İstatistikler",

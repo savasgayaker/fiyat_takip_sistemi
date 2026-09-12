@@ -141,6 +141,23 @@ def test_carry_count_uses_devreden_states(sq):
     assert all(c["gun"] >= 1 for c in q["carry_classes"])
 
 
+def test_tree_leaf_badges(sq):
+    """Leaves carry durum / devreden_gun / tarife; carried leaves match quality.carry_classes."""
+    def leaves(nodes):
+        for n in nodes:
+            if n["children"]:
+                yield from leaves(n["children"])
+            else:
+                yield n
+    ls = {n["kod"]: n for n in leaves(sq.tree())}
+    assert ls and all("durum" in n and "devreden_gun" in n and "tarife" in n for n in ls.values())
+    carried = {n["kod"]: n["devreden_gun"] for n in ls.values() if n["durum"] in ("CARRY", "CARRY_GUN_YOK", "ZINCIR_KOPUK")}
+    assert carried == {c["kod"]: c["gun"] for c in sq.quality(3)["carry_classes"]}
+    assert all(n["devreden_gun"] == 0 for n in ls.values() if n["durum"] == "FRESH")
+    tarife = {c["kod"] for c in __import__("json").loads((Path(__file__).resolve().parents[2] / "config" / "tarife_siniflari.json").read_text(encoding="utf-8"))["siniflar"]}
+    assert all(n["tarife"] == (k in tarife) for k, n in ls.items())
+
+
 def test_items_paging_and_sort(sq):
     kod = sorted(sq._leaves())[0]
     p1 = sq.items(kod, None, None, 1, "-son_fiyat")

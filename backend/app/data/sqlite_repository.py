@@ -250,14 +250,20 @@ class SqliteRepository(Repository):
         for kod, p in parent.items():
             children[p].append(kod)
 
+        state = self._leaf_state()
+
         def build(kod):
             if kod in leaves and kod in fl:
                 b, e = fl[kod]
             else:
                 agg = self._aggregate_changes(kod, fl, leaves)
                 b, e = (agg[0], agg[1]) if agg else (1.0, 1.0)
-            return {**nodes[kod], "degisim_donem": round((e / b - 1) * 100, 2),
-                    "children": [build(c) for c in sorted(children.get(kod, []))]}
+            out = {**nodes[kod], "degisim_donem": round((e / b - 1) * 100, 2),
+                   "children": [build(c) for c in sorted(children.get(kod, []))]}
+            if kod in leaves:
+                durum, gun = state.get(kod, ("FRESH", 0))
+                out.update({"durum": durum, "devreden_gun": gun, "tarife": kod in self._tarife})
+            return out
 
         return [build(b) for b in sorted(children["TOPLAM"])]
 
@@ -423,18 +429,32 @@ class SqliteRepository(Repository):
             hit = self._cache.put(key, [{"neden": r["neden"] or "(bos)", "satir": int(r["n"])} for r in rows])
         return hit
 
+    def _devreden_gun(self, sinif: str) -> int:
+        """Consecutive carried days ending on the data date (0 when the class is FRESH today)."""
+        gun = 0
+        for d in self._q("SELECT durum FROM endeks_sinif WHERE yontem_surumu=? AND sinif=? AND tarih<=? ORDER BY tarih DESC",
+                         (self.surum, sinif, self.data_date)):
+            if d["durum"] in DEVREDEN:
+                gun += 1
+            else:
+                break
+        return gun
+
+    def _leaf_state(self) -> Dict[str, Tuple[str, int]]:
+        """leaf kod -> (durum on data date, devreden_gun); cached per data date."""
+        key = ("leaf_state", self.data_date, self.surum)
+        hit = self._cache.get(key)
+        if hit is None:
+            hit = {}
+            for r in self._q("SELECT sinif, durum FROM endeks_sinif WHERE yontem_surumu=? AND tarih=? AND hiyerarsi_dus=0", (self.surum, self.data_date)):
+                hit[r["sinif"]] = (r["durum"], self._devreden_gun(r["sinif"]) if r["durum"] in DEVREDEN else 0)
+            self._cache.put(key, hit)
+        return hit
+
     def _carry_classes(self) -> List[Dict[str, Any]]:
-        dd, s = self.data_date, self.surum
-        out = []
-        for r in self._q("SELECT sinif, agirlik FROM endeks_sinif WHERE yontem_surumu=? AND tarih=? AND hiyerarsi_dus=0 AND durum IN (?,?,?) ORDER BY agirlik DESC",
-                         (s, dd, *DEVREDEN)):
-            gun = 0
-            for d in self._q("SELECT durum FROM endeks_sinif WHERE yontem_surumu=? AND sinif=? AND tarih<=? ORDER BY tarih DESC", (s, r["sinif"], dd)):
-                if d["durum"] in DEVREDEN:
-                    gun += 1
-                else:
-                    break
-            out.append({"kod": r["sinif"], "ad_tr": self._ad(r["sinif"]), "agirlik": float(r["agirlik"]), "gun": gun})
+        leaves, state = self._leaves(), self._leaf_state()
+        out = [{"kod": k, "ad_tr": self._ad(k), "agirlik": leaves[k], "gun": g} for k, (d, g) in state.items() if d in DEVREDEN and k in leaves]
+        out.sort(key=lambda x: -x["agirlik"])
         return out
 
     def weak_classes(self) -> List[Dict[str, Any]]:

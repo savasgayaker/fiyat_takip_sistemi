@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getMeta } from "@/lib/api";
-import { presetRange, PresetKey } from "@/lib/dates";
+import { clampRange, presetRange, presetRangeRaw, PresetKey } from "@/lib/dates";
 import type { Meta } from "@/types";
 
 interface AppState {
@@ -19,6 +19,10 @@ interface AppState {
   preset: PresetKey;
   setPreset: (p: PresetKey) => void;
   setCustomRange: (from: string, to: string) => void;
+  /** İstenen başlangıç baz gününden önceydi ve baz gününe çekildi (tüm ekranlar için tek kural). */
+  fromClamped: boolean;
+  /** Kırpılmadan önce istenen başlangıç (bilgi amaçlı). */
+  requestedFrom: string;
   theme: "light" | "dark";
   toggleTheme: () => void;
   dbPath: string;
@@ -54,6 +58,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const [preset, setPresetState] = useState<PresetKey>("son30");
   const [range, setRange] = useState<{ from: string; to: string } | null>(null);
+  const [requestedFrom, setRequestedFrom] = useState<string>("");
   const [theme, setTheme] = useState<"light" | "dark">(
     () => (localStorage.getItem("theme") as "light" | "dark") || "light",
   );
@@ -86,6 +91,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Initialise the range from the preset once meta is available.
   useEffect(() => {
     if (meta && !range) {
+      setRequestedFrom(presetRangeRaw("son30", meta.data_date, meta.base_day).from);
       setRange(presetRange("son30", meta.data_date, meta.base_day));
     }
   }, [meta, range]);
@@ -103,16 +109,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     (p: PresetKey) => {
       setPresetState(p);
       if (meta && p !== "ozel") {
+        setRequestedFrom(presetRangeRaw(p, meta.data_date, meta.base_day).from);
         setRange(presetRange(p, meta.data_date, meta.base_day));
       }
     },
     [meta],
   );
 
-  const setCustomRange = useCallback((from: string, to: string) => {
-    setPresetState("ozel");
-    setRange({ from, to });
-  }, []);
+  const setCustomRange = useCallback(
+    (from: string, to: string) => {
+      setPresetState("ozel");
+      setRequestedFrom(from);
+      const c = clampRange({ from, to }, meta?.base_day || "", meta?.data_date || "");
+      setRange({ from: c.from, to: c.to });
+    },
+    [meta],
+  );
 
   const value = useMemo<AppState>(
     () => ({
@@ -123,6 +135,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       preset,
       setPreset,
       setCustomRange,
+      fromClamped: !!meta && !!requestedFrom && requestedFrom < meta.base_day,
+      requestedFrom,
       theme,
       toggleTheme: () => setTheme((t) => (t === "light" ? "dark" : "light")),
       dbPath,
@@ -132,7 +146,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       basketPreset,
       setBasketPreset,
     }),
-    [meta, metaLoading, range, preset, theme, dbPath, setPreset, setCustomRange, basketCustom, basketPreset],
+    [meta, metaLoading, range, preset, requestedFrom, theme, dbPath, setPreset, setCustomRange, basketCustom, basketPreset],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

@@ -4,7 +4,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { fmtNum, fmtPct } from "@/lib/format";
 import { colorForKod } from "@/lib/palette";
 import { cn } from "@/lib/utils";
-import type { TreeNode } from "@/types";
+import { tr } from "@/i18n/tr";
+import { DEVREDEN_DURUMLAR, type TreeNode } from "@/types";
+
+/** Değişim rengi: devreden sınıfta gri; artış yeşil, düşüş kırmızı; %0,00 yalnız FRESH'te siyah. */
+function changeClass(node: TreeNode): string {
+  if (node.durum && DEVREDEN_DURUMLAR.includes(node.durum)) return "text-muted-foreground";
+  if (node.degisim_donem > 0) return "text-emerald-600";
+  if (node.degisim_donem < 0) return "text-red-600";
+  return node.durum === "FRESH" ? "text-foreground" : "text-muted-foreground";
+}
 
 interface Props {
   nodes: TreeNode[];
@@ -127,19 +136,28 @@ export function TreeView({ nodes, selected, onToggle }: Props) {
               </span>
               {node.ad_tr}
             </span>
+            {node.tarife && (
+              <span
+                className="shrink-0 rounded border border-border px-1 text-[10px] leading-4 text-muted-foreground"
+                title="Tarifeli (idari fiyatlı) sınıf: az kalemle temsil normaldir"
+                data-testid={`tree-tarife-${node.kod}`}
+              >
+                {tr.breakdown.tariff}
+              </span>
+            )}
+            {node.durum && DEVREDEN_DURUMLAR.includes(node.durum) && (
+              <span
+                className="shrink-0 rounded bg-muted px-1 text-[10px] leading-4 text-muted-foreground"
+                title={(tr.durum as any)[node.durum] || node.durum}
+                data-testid={`tree-devreden-${node.kod}`}
+              >
+                {tr.breakdown.carried} · {node.devreden_gun ?? 1} {tr.breakdown.carriedDays}
+              </span>
+            )}
             <span className="shrink-0 text-xs tabular text-muted-foreground">
               {fmtNum(node.agirlik)}%
             </span>
-            <span
-              className={cn(
-                "w-16 shrink-0 text-right text-xs tabular",
-                node.degisim_donem > 0
-                  ? "text-emerald-600"
-                  : node.degisim_donem < 0
-                    ? "text-red-600"
-                    : "text-muted-foreground",
-              )}
-            >
+            <span className={cn("w-16 shrink-0 text-right text-xs tabular", changeClass(node))} data-testid={`tree-change-${node.kod}`}>
               {fmtPct(node.degisim_donem)}
             </span>
           </div>
