@@ -15,6 +15,9 @@ from typing import Any, Dict, List, Optional
 # Repo-level config (config/*.json). No hard-coded paths elsewhere.
 DEFAULT_CONFIG_DIR = Path(__file__).resolve().parents[3] / "config"
 
+# Preset whose weights come from the stored index, not from config/sepetler.json.
+TUIK_SEPET = "TÜİK 2026"
+
 # "Temsil zayıf" rule (handover note §5): weight >= 0.3, items < 10, not a tariff class.
 WEAK_MIN_WEIGHT = 0.3
 WEAK_MAX_ITEMS = 10
@@ -71,6 +74,12 @@ class Repository(ABC):
 
     @abstractmethod
     def baskets(self) -> Dict[str, Dict[str, float]]: ...
+
+    @abstractmethod
+    def tuik_basket(self) -> Dict[str, Any]:
+        """The 'TÜİK 2026' preset: covered division weights that produce exactly the TOPLAM series
+        (same denominator as the dashboard). {ad, tarih, agirlik, tam_agirlik, kapsanan_toplam}."""
+        ...
 
     @abstractmethod
     def search(self, q: str) -> List[Dict[str, Any]]: ...
@@ -302,11 +311,18 @@ class FixtureRepository(Repository):
         contrib.sort(key=lambda x: abs(x["katki_puan"]), reverse=True)
         return {"series": series, "contrib": contrib}
 
+    def tuik_basket(self):
+        bolum = [n for n in self._nodes if n["seviye"] == "bolum"]
+        w = {n["kod"]: float(n["agirlik"]) for n in bolum}
+        return {"ad": TUIK_SEPET, "tarih": self._meta.get("data_date", ""), "agirlik": w, "tam_agirlik": dict(w),
+                "kapsanan_toplam": sum(w.values())}
+
     def baskets(self):
-        # config/sepetler.json is the single basket store (also written by the app);
-        # the fixture file is only the fallback on machines without config/.
+        # 'TÜİK 2026' is derived from the stored division weights (never written to the store);
+        # config/sepetler.json holds the other presets and user baskets (fixture file = fallback).
         from app.baskets_store import baskets as _store
-        return _store() or self._baskets
+        store = _store() or self._baskets
+        return {TUIK_SEPET: self.tuik_basket()["agirlik"], **{k: v for k, v in store.items() if k != TUIK_SEPET}}
 
     def class_changes(self, level, frm, to):
         out = []

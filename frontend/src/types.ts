@@ -132,6 +132,15 @@ export interface QualityResponse {
   rc_kodlari: RcCode[];
 }
 
+/** 'TÜİK 2026' hazır sepeti: veri tarihindeki kapsanan bölüm ağırlıkları (Pano TOPLAM ile aynı payda). */
+export interface TuikBasket {
+  ad: string;
+  tarih: string;
+  agirlik: Record<string, number>;
+  tam_agirlik: Record<string, number>;
+  kapsanan_toplam: number;
+}
+
 export interface BasketResult {
   series: { tarih: string; endeks: number }[];
   contrib: {

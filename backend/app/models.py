@@ -177,4 +177,12 @@ class BasketSave(BaseModel):
     ad: str
     agirliklar: Dict[str, float]
 
+
+class TuikBasket(BaseModel):
+    ad: str
+    tarih: str
+    agirlik: Dict[str, float]
+    tam_agirlik: Dict[str, float]
+    kapsanan_toplam: float
+
 TreeNode.model_rebuild()

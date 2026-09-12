@@ -1,26 +1,11 @@
 {
-  "_not": "Hazir sepetler (bolum duzeyi). 'TÜİK 2026' = tuik_agirlik_2026 seviye-2 agirliklari (4 ondalik, toplam 100); diger uc sepet senaryo agirliklari. _sabit listesindekiler silinemez/uzerine yazilamaz. Uygulamanin yazdigi tek dosya: Sepet ekranindaki Kaydet (POST /api/baskets) buraya ekler, DELETE /api/baskets/<ad> siler. Anahtar = sepet adi, deger = {bolum_kodu: agirlik}; kaydedilirken 100'e olceklenir.",
+  "_not": "Hazir sepetler (bolum duzeyi) ve kullanici sepetleri. 'TÜİK 2026' BURADA TUTULMAZ: uygulama onu endeks_gunluk bolum satirlarindaki kapsanan_agirlik'ten uretir (Pano TOPLAM ile ayni payda; GET /api/baskets/tuik). _sabit listesindekiler silinemez/uzerine yazilamaz. Uygulamanin yazdigi tek dosya: Kaydet (POST /api/baskets) ekler, DELETE /api/baskets/<ad> siler. Anahtar = sepet adi, deger = {bolum_kodu: agirlik}; kaydedilirken 100'e olceklenir.",
   "_sabit": [
     "TÜİK 2026",
     "Asgari ücretli",
     "Emekli",
     "Memur"
   ],
-  "TÜİK 2026": {
-    "01": 24.4444,
-    "02": 2.7549,
-    "03": 7.9038,
-    "04": 11.402,
-    "05": 7.9201,
-    "06": 2.7923,
-    "07": 16.6169,
-    "08": 3.1035,
-    "09": 4.3382,
-    "10": 2.0215,
-    "11": 11.1349,
-    "12": 1.074,
-    "13": 4.4935
-  },
   "Asgari ücretli": {
     "01": 32.0,
     "02": 5.0,

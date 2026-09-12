@@ -16,7 +16,7 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { ExportButtons } from "@/components/common/ExportButtons";
 import { LoadingState } from "@/components/common/States";
 import { IndexLineChart, LineSeries } from "@/components/charts/IndexLineChart";
-import { getBaskets, getBasketSabit, getIndexMulti, getTree, saveBasketApi, deleteBasketApi } from "@/lib/api";
+import { getBaskets, getBasketSabit, getTuikBasket, getIndexMulti, getTree, saveBasketApi, deleteBasketApi } from "@/lib/api";
 import { useApp, DEFAULT_BASKET_PRESET } from "@/context/AppContext";
 import { tr } from "@/i18n/tr";
 import { fmtNum, fmtPct, fmtSigned } from "@/lib/format";
@@ -29,6 +29,7 @@ import {
   parseWeight,
   periodChange,
   sameWeights,
+  scaleTo100,
   weightSum,
   type Pt,
 } from "@/lib/basket";
@@ -57,6 +58,7 @@ export default function Basket() {
   const qc = useQueryClient();
   const basketsQ = useQuery({ queryKey: ["baskets"], queryFn: getBaskets });
   const sabitQ = useQuery({ queryKey: ["baskets-sabit"], queryFn: getBasketSabit });
+  const tuikQ = useQuery({ queryKey: ["baskets-tuik"], queryFn: getTuikBasket });
   const treeQ = useQuery({ queryKey: ["tree"], queryFn: getTree });
 
   const divisions = useMemo(
@@ -84,7 +86,10 @@ export default function Basket() {
 
   // Reference preset must exist; fall back to the default / first one.
   const refName = presets[basketPreset] ? basketPreset : presets[DEFAULT_BASKET_PRESET] ? DEFAULT_BASKET_PRESET : presetNames[0];
-  const refWeights = useMemo(() => (refName ? presets[refName] : {}) || {}, [presets, refName]);
+  const refRaw = useMemo(() => (refName ? presets[refName] : {}) || {}, [presets, refName]);
+  // Boxes always show the preset scaled to 100 (TÜİK 2026 arrives as covered weights summing to ~93.5).
+  const refWeights = useMemo(() => scaleTo100(refRaw), [refRaw]);
+  const isTuikRef = refName === DEFAULT_BASKET_PRESET && !!tuikQ.data;
 
   // First visit: seed custom weights from the reference preset.
   useEffect(() => {
@@ -94,6 +99,13 @@ export default function Basket() {
   }, [refName, refWeights, basketCustom, setBasketCustom]);
 
   const isCustom = Object.keys(basketCustom).length > 0 && !sameWeights(basketCustom, refWeights);
+  const weightTitle = (kod: string): string | undefined => {
+    if (!isTuikRef || !tuikQ.data) return undefined;
+    const kaps = tuikQ.data.agirlik[kod];
+    const tam = tuikQ.data.tam_agirlik[kod];
+    if (kaps === undefined) return undefined;
+    return `${tr.basket.coveredWeight} %${fmtNum(kaps)}; ${tr.basket.fullWeight} %${fmtNum(tam)}`;
+  };
   const [selected, setSelected] = useState<string[]>([]);
   const [customActive, setCustomActive] = useState(false);
   const [editing, setEditing] = useState<Record<string, string>>({});
@@ -131,7 +143,7 @@ export default function Basket() {
   const loadPreset = (name: string) => {
     if (!presets[name]) return;
     setBasketPreset(name);
-    setBasketCustom({ ...presets[name] });
+    setBasketCustom(scaleTo100(presets[name]));
     setEditing({});
     setCustomActive(false);
     setSelected((prev) => [name, ...prev.filter((n) => n !== name && n !== CUSTOM)].slice(0, MAX_COMPARE));
@@ -306,6 +318,7 @@ export default function Basket() {
                       onChange={(e) => onWeightChange(d.kod, e.target.value)}
                       onBlur={() => onWeightBlur(d.kod)}
                       onFocus={(e) => e.target.select()}
+                      title={weightTitle(d.kod)}
                       className={cn("h-7 w-20 text-right text-xs tabular", isCustom && (basketCustom[d.kod] || 0) !== (refWeights[d.kod] || 0) && "border-primary")}
                       data-testid={`weight-${d.kod}`}
                     />
@@ -329,6 +342,11 @@ export default function Basket() {
                 </div>
               </div>
               {!sumOk && <p className="text-xs text-amber-600">{tr.basket.mustSum}</p>}
+              {isTuikRef && tuikQ.data && (
+                <p className="text-[11px] text-muted-foreground" data-testid="tuik-note">
+                  {tr.basket.tuikNote} ({tr.basket.coveredWeight} %{fmtNum(tuikQ.data.kapsanan_toplam, 1)})
+                </p>
+              )}
               {isCustom && (
                 <p className="text-xs text-muted-foreground" data-testid="unsaved-hint">
                   {tr.basket.unsavedHint}

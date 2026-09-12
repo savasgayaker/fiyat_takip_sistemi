@@ -74,6 +74,26 @@ def test_contract_quality_search_baskets(repo):
         M.SearchHit.model_validate(h)
     b = repo.baskets()
     assert b and all(isinstance(v, dict) for v in b.values())
+    t = M.TuikBasket.model_validate(repo.tuik_basket())
+    assert t.ad == "TÜİK 2026" and b["TÜİK 2026"] == t.agirlik and set(t.tam_agirlik) == set(t.agirlik)
+
+
+def test_tuik_basket_equals_toplam_series(sq):
+    """'TÜİK 2026' preset (covered division weights) reproduces the stored TOPLAM series: same denominator as the dashboard."""
+    t = sq.tuik_basket()
+    w = t["agirlik"]
+    assert abs(sum(w.values()) - t["kapsanan_toplam"]) < 1e-9
+    top = {p["tarih"]: p["endeks"] for p in sq.index("TOPLAM", None, None, None)["series"]}
+    bol = {r["kod"]: {p["tarih"]: p["endeks"] for p in r["series"]} for r in sq.index_multi(sorted(w), None, None)}
+    sw = sum(w.values())
+    for tarih, endeks in top.items():
+        lin = sum(w[k] * bol[k][tarih] for k in w) / sw
+        assert abs(lin - endeks) < 1e-9, tarih
+    # and through the export path (fiyat_takip.endeks.katki)
+    r = sq.basket_compute(w, None, None)
+    for p in r["series"]:
+        assert abs(p["endeks"] - top[p["tarih"]]) < 1e-9
+    assert abs(sum(c["katki_puan"] for c in r["contrib"]) - 100 * (r["series"][-1]["endeks"] / r["series"][0]["endeks"] - 1)) < 1e-9
 
 
 # ---------------------------------------------------------------- SQLite semantics

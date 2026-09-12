@@ -24,7 +24,7 @@ from math import fsum
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-from .repository import (DEFAULT_CONFIG_DIR, WEAK_MAX_ITEMS, WEAK_MIN_WEIGHT, Repository,
+from .repository import (DEFAULT_CONFIG_DIR, TUIK_SEPET, WEAK_MAX_ITEMS, WEAK_MIN_WEIGHT, Repository,
                          load_config)
 
 DEVREDEN = ("CARRY", "CARRY_GUN_YOK", "ZINCIR_KOPUK")
@@ -464,9 +464,19 @@ class SqliteRepository(Repository):
                 "weak_classes": self.weak_classes(), "rc_kodlari": self._rc_kodlari}
 
     # ------------------------------------------------------------------ baskets / search
+    def tuik_basket(self):
+        """Covered division weights of the data date (endeks_gunluk.kapsanan_agirlik): Σ w_B I_B / Σ w_B == TOPLAM."""
+        dd, s = self.data_date, self.surum
+        rows = self._q("SELECT kod, kapsanan_agirlik FROM endeks_gunluk WHERE yontem_surumu=? AND tarih=? AND duzey='bolum' ORDER BY kod", (s, dd))
+        w = {r["kod"]: float(r["kapsanan_agirlik"] or 0.0) for r in rows}
+        top = self._one("SELECT kapsanan_agirlik FROM endeks_gunluk WHERE yontem_surumu=? AND tarih=? AND kod='TOPLAM'", (s, dd))
+        return {"ad": TUIK_SEPET, "tarih": dd or "", "agirlik": w,
+                "tam_agirlik": {k: self._tuik.get(k, (k, 0.0))[1] for k in w},
+                "kapsanan_toplam": float(top["kapsanan_agirlik"]) if top else fsum(w.values())}
+
     def baskets(self):
         from app.baskets_store import baskets as _store
-        return _store()
+        return {TUIK_SEPET: self.tuik_basket()["agirlik"], **{k: v for k, v in _store().items() if k != TUIK_SEPET}}
 
     def basket_compute(self, weights, frm, to):
         """Export-only path: linear combination of stored class indices via fiyat_takip.endeks.katki."""

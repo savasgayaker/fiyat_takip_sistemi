@@ -12,6 +12,7 @@ import type {
   SourceSeries,
   TreeNode,
   TuikCompareResult,
+  TuikBasket,
   ExportTable,
 } from "@/types";
 
@@ -95,6 +96,10 @@ export async function getQuality(days = 14): Promise<QualityResponse> {
 
 export async function getBaskets(): Promise<Record<string, Record<string, number>>> {
   return (await client.get("/baskets")).data;
+}
+
+export async function getTuikBasket(): Promise<TuikBasket> {
+  return (await client.get("/baskets/tuik")).data;
 }
 
 export async function getBasketSabit(): Promise<string[]> {

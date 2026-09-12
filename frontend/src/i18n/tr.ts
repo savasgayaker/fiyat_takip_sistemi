@@ -114,6 +114,9 @@ export const tr = {
     saveFailed: "kaydedilemedi",
     deleteFailed: "silinemedi",
     computedLocally: "Hesap tarayıcıda (src/lib/basket.ts); arka uca istek gitmez.",
+    coveredWeight: "kapsanan ağırlık",
+    fullWeight: "TÜİK tam ağırlığı",
+    tuikNote: "TÜİK 2026 = veri tarihindeki kapsanan bölüm ağırlıkları (Pano TOPLAM ile aynı seri); kutular 100'e ölçeklidir.",
   },
   quality: {
     title: "Kaynaklar & Kalite",

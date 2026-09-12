@@ -55,6 +55,15 @@ export function normalizeWeights(weights: Record<string, number>): Record<string
   return out;
 }
 
+/** Toplamı 100'e ölçekler, yuvarlamadan (göreli ağırlıklar birebir korunur; seri değişmez). */
+export function scaleTo100(weights: Record<string, number>): Record<string, number> {
+  const sum = weightSum(weights);
+  if (sum === 0) return { ...weights };
+  const out: Record<string, number> = {};
+  for (const [k, v] of Object.entries(weights)) out[k] = ((Number(v) || 0) * 100) / sum;
+  return out;
+}
+
 export function sameWeights(a: Record<string, number>, b: Record<string, number>, eps = 1e-9): boolean {
   const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
   for (const k of keys) if (Math.abs((a[k] || 0) - (b[k] || 0)) > eps) return false;

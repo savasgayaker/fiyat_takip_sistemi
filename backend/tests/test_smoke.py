@@ -111,7 +111,11 @@ def test_quality():
 
 
 def test_baskets():
-    assert client.get("/api/baskets").status_code == 200
+    r = client.get("/api/baskets")
+    assert r.status_code == 200 and "TÜİK 2026" in r.json()
+    t = client.get("/api/baskets/tuik")
+    assert t.status_code == 200 and t.json()["agirlik"] == r.json()["TÜİK 2026"]
+    assert client.get("/api/baskets/sabit").status_code == 200
 
 
 def test_search():

@@ -138,6 +138,12 @@ async def get_baskets():
     return repo.baskets()
 
 
+@api.get("/baskets/tuik", response_model=M.TuikBasket)
+async def get_baskets_tuik():
+    """'TÜİK 2026' preset = covered division weights of the data date (same denominator as the dashboard)."""
+    return repo.tuik_basket()
+
+
 @api.get("/baskets/sabit", response_model=List[str])
 async def get_baskets_sabit():
     """Preset names that cannot be deleted or overwritten (config/sepetler.json: _sabit)."""
