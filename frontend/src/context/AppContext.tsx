@@ -23,6 +23,25 @@ interface AppState {
   toggleTheme: () => void;
   dbPath: string;
   setDbPath: (p: string) => void;
+  /** Kaydedilmemiş özel sepet ağırlıkları (bölüm kodu → ağırlık); ekran değişince ve F5'te kalır. */
+  basketCustom: Record<string, number>;
+  setBasketCustom: (w: Record<string, number>) => void;
+  /** En son seçilen hazır sepet (referans, gri kesikli çizgi). */
+  basketPreset: string;
+  setBasketPreset: (name: string) => void;
+}
+
+const BASKET_CUSTOM_KEY = "basketCustom";
+const BASKET_PRESET_KEY = "basketPreset";
+export const DEFAULT_BASKET_PRESET = "TÜİK 2026";
+
+function readJson<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
 }
 
 const Ctx = createContext<AppState | null>(null);
@@ -41,6 +60,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [dbPath, setDbPath] = useState<string>(
     () => localStorage.getItem("dbPath") || "/data/fiyat_takip.sqlite",
   );
+  const [basketCustom, setBasketCustom] = useState<Record<string, number>>(() =>
+    readJson<Record<string, number>>(BASKET_CUSTOM_KEY, {}),
+  );
+  const [basketPreset, setBasketPreset] = useState<string>(
+    () => localStorage.getItem(BASKET_PRESET_KEY) || DEFAULT_BASKET_PRESET,
+  );
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(BASKET_CUSTOM_KEY, JSON.stringify(basketCustom));
+    } catch {
+      /* depolama kapalıysa sessizce geç */
+    }
+  }, [basketCustom]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(BASKET_PRESET_KEY, basketPreset);
+    } catch {
+      /* depolama kapalıysa sessizce geç */
+    }
+  }, [basketPreset]);
 
   // Initialise the range from the preset once meta is available.
   useEffect(() => {
@@ -86,8 +127,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       toggleTheme: () => setTheme((t) => (t === "light" ? "dark" : "light")),
       dbPath,
       setDbPath,
+      basketCustom,
+      setBasketCustom,
+      basketPreset,
+      setBasketPreset,
     }),
-    [meta, metaLoading, range, preset, theme, dbPath, setPreset, setCustomRange],
+    [meta, metaLoading, range, preset, theme, dbPath, setPreset, setCustomRange, basketCustom, basketPreset],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

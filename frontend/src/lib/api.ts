@@ -97,6 +97,23 @@ export async function getBaskets(): Promise<Record<string, Record<string, number
   return (await client.get("/baskets")).data;
 }
 
+export async function getBasketSabit(): Promise<string[]> {
+  return (await client.get("/baskets/sabit")).data;
+}
+
+/** Kaydet: config/sepetler.json'a ad verip yazar (uygulamanın yazdığı tek dosya). */
+export async function saveBasketApi(
+  ad: string,
+  agirliklar: Record<string, number>,
+): Promise<Record<string, Record<string, number>>> {
+  return (await client.post("/baskets", { ad, agirliklar })).data;
+}
+
+export async function deleteBasketApi(ad: string): Promise<Record<string, Record<string, number>>> {
+  return (await client.delete(`/baskets/${encodeURIComponent(ad)}`)).data;
+}
+
+/** Yalnız dışa aktarım yolu; Sepet ekranı hesabı src/lib/basket.ts'te yapar, bu uca istek atmaz. */
 export async function computeBasket(
   weights: Record<string, number>,
   from: string,

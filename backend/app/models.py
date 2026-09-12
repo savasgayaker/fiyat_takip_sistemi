@@ -172,4 +172,9 @@ class SearchHit(BaseModel):
 
 Baskets = Dict[str, Dict[str, float]]
 
+
+class BasketSave(BaseModel):
+    ad: str
+    agirliklar: Dict[str, float]
+
 TreeNode.model_rebuild()

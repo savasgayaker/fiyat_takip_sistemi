@@ -22,6 +22,9 @@ export interface LineSeries {
   ad_tr: string;
   color: string;
   series: { tarih: string; endeks: number }[];
+  /** SVG stroke-dasharray, e.g. "6 4" for a reference line. */
+  dash?: string;
+  width?: number;
 }
 
 interface Props {
@@ -145,7 +148,8 @@ export function IndexLineChart({
                 type="monotone"
                 dataKey={s.kod}
                 stroke={s.color}
-                strokeWidth={2}
+                strokeWidth={s.width ?? 2}
+                strokeDasharray={s.dash}
                 dot={false}
                 activeDot={{ r: 4 }}
                 isAnimationActive={false}

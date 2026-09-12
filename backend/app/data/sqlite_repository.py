@@ -465,8 +465,8 @@ class SqliteRepository(Repository):
 
     # ------------------------------------------------------------------ baskets / search
     def baskets(self):
-        d = load_config(self.config_dir, "sepetler")
-        return {k: v for k, v in d.items() if not k.startswith("_") and isinstance(v, dict)}
+        from app.baskets_store import baskets as _store
+        return _store()
 
     def basket_compute(self, weights, frm, to):
         """Export-only path: linear combination of stored class indices via fiyat_takip.endeks.katki."""

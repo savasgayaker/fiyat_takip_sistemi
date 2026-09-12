@@ -303,7 +303,10 @@ class FixtureRepository(Repository):
         return {"series": series, "contrib": contrib}
 
     def baskets(self):
-        return self._baskets
+        # config/sepetler.json is the single basket store (also written by the app);
+        # the fixture file is only the fallback on machines without config/.
+        from app.baskets_store import baskets as _store
+        return _store() or self._baskets
 
     def class_changes(self, level, frm, to):
         out = []

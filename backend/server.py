@@ -21,6 +21,7 @@ from starlette.middleware.cors import CORSMiddleware
 from fastapi import HTTPException
 
 from app import models as M
+from app import baskets_store
 from app.data.repository import FixtureRepository, Repository, SqliteRepository, load_config
 from app.exports import build_excel, build_pdf, tuik_compare
 
@@ -137,6 +138,33 @@ async def get_baskets():
     return repo.baskets()
 
 
+@api.get("/baskets/sabit", response_model=List[str])
+async def get_baskets_sabit():
+    """Preset names that cannot be deleted or overwritten (config/sepetler.json: _sabit)."""
+    return baskets_store.sabit()
+
+
+@api.post("/baskets", response_model=M.Baskets)
+async def post_baskets(body: M.BasketSave):
+    """Save custom weights under a name into config/sepetler.json (the only file the app writes)."""
+    try:
+        return baskets_store.kaydet(body.ad, body.agirliklar)
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+
+@api.delete("/baskets/{ad}", response_model=M.Baskets)
+async def delete_baskets(ad: str):
+    try:
+        return baskets_store.sil(ad)
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except KeyError:
+        raise HTTPException(status_code=404, detail="sepet bulunamadı")
+
+
 @api.get("/search", response_model=List[M.SearchHit])
 async def get_search(q: str = ""):
     if not q:
@@ -192,7 +220,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_credentials=False,
     allow_origins=CORS_ORIGINS,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["*"],
 )
 
