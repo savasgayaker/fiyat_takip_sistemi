@@ -99,7 +99,8 @@ def test_tuik_basket_equals_toplam_series(sq):
 # ---------------------------------------------------------------- SQLite semantics
 def test_meta_from_tables(sq):
     m = sq.meta()
-    assert m["yontem_surumu"] == f"v{sq.surum}"
+    assert m["yontem_surumu"].startswith(f"v{sq.surum}")
+    assert ("deneme" in m["yontem_surumu"]) == (sq.etiket == "deneme")
     assert m["base_day"] <= m["data_date"]
     assert 0 < m["coverage_weight"] <= 100 and m["class_count"] > 0
 

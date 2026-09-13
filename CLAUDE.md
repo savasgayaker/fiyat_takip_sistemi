@@ -1,10 +1,14 @@
 # CLAUDE.md — DÇK-EÖS Fiyat Endeksi (masaüstü)
 
 Yerel-öncelikli, çevrimdışı, tek makine. **Uygulama hesaplamaz, okur.** Endeks matematiği bu repoda
-değil, `fiyat_takip/endeks/` Python modülündedir; gece zinciri (`C:\FiyatTakip\GECE_KOSUSU.bat`, 00:30)
-onu çağırıp sonucu `fiyat_takip.sqlite` içine **ekleyerek** yazar (`run_id, yontem_surumu, hesap_zamani`;
-yayımlanan gün değişmez). Arka uç yalnız `endeks_gunluk`, `endeks_sinif`, `endeks_sinif_kaynak`,
-`master_rc`, `tuik_agirlik_2026`, `v_gozlem_tufe`, `gozlem` okur. **Arka uçta Jevons/Laspeyres kodu yazma.**
+değil, **tek motor** `C:\FiyatTakip\endeks_deneme.py` içindedir (`veri_oku → hesapla → ozet_metni → dosyalari_yaz`);
+`C:\FiyatTakip\fiyat_takip/endeks/` yalnız DB katmanıdır (şema, yazma, okuma). Gece zinciri
+(`GECE_KOSUSU.bat`, 00:30) `endeks_gece.py` ile aynı fonksiyonları çağırıp sonucu `fiyat_takip.sqlite`'a
+yazar (`run_id, yontem_surumu, hesap_zamani`; seri her gece tüm tarihçe üzerinden yeniden hesaplanır,
+tablo = csv; `endeks_kosu.etiket='deneme'` olduğu sürece resmi seri `endeks_deneme.py`'nin csv/xlsx'idir).
+Masaüstü boru hattı DB'ye yalnız `endeks_*` ve `master_rc` yazar. Arka uç yalnız `endeks_gunluk`,
+`endeks_sinif`, `endeks_sinif_kaynak`, `endeks_kosu`, `master_rc`, `tuik_agirlik_2026`, `v_gozlem_tufe`,
+`gozlem` okur. **Arka uçta Jevons/Laspeyres kodu yazma; ikinci bir motor yazma.**
 Tek istisna: Sepet ekranı — saklanan sınıf endekslerinin doğrusal birleşimi, **frontend'de** (`src/lib/basket.ts`)
 hesaplanır; arka uç yalnız sepet kaydı (`config/sepetler.json`) ve dışa aktarım için `fiyat_takip.endeks`'i import eder.
 

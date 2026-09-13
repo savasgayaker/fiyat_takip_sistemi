@@ -1,8 +1,9 @@
 # DÇK-EÖS Fiyat Endeksi — Yöntem (Metodoloji)
 
-> Yöntem sürümü **v0.1** (`fiyat_takip/endeks`, 11.09.2026). Uygulama hesaplamaz; gece zinciri bu
-> yöntemle hesaplar ve sonucu `endeks_gunluk`, `endeks_sinif`, `endeks_sinif_kaynak` tablolarına
-> **ekler**. v0.2'de ele alınacak konular: `docs/YONTEM_V02_BEKLEYEN.md`.
+> Yöntem sürümü **v0.3** (`C:\FiyatTakip\endeks_deneme.py`, 12.09.2026: K1→K24 kategori devri; v0.2:
+> eşik min(3,|c|), hiyerarşi kuralı, gün-yok carry). Uygulama hesaplamaz; gece zinciri bu tek motorla
+> hesaplar ve sonucu `endeks_gunluk`, `endeks_sinif`, `endeks_sinif_kaynak` tablolarına yazar.
+> Bekleyen konular: `docs/YONTEM_V02_BEKLEYEN.md`.
 
 ## 1. Amaç ve Kapsam
 
@@ -85,11 +86,14 @@ $I_B(t_1)=100$ ve formül $(I_B-100)\cdot w_B/\sum w_B$ biçimine iner (özet me
 - `disi_listesi.json`: kısım/kaynak/tarih/fiyat aralığı kuralları (`DISI:<neden>`).
 - Sınıf veya ağırlık eşlemesi olmayan gözlemler endekse girmez (`gozlem_coicop` null).
 
-## 6. Vintage İlkesi
+## 6. Revizyon İlkesi
 
-Gece zinciri son 3 günü yeniden yüklediği için $t-1$ kalem fiyatları revize olabilir. $t$ günü
-halkası güncel DB'deki $t-1$ ve $t$ fiyatlarıyla kurulur; yayımlanan $I(t-1)$ tablodan okunur ve
-**değiştirilmez** (`INSERT OR IGNORE`). Yöntem değişince yeni `yontem_surumu` ile paralel seri.
+Seri her gece **tüm tarihçe üzerinden yeniden hesaplanır**: gece zinciri son 3 günü yeniden yükler ve
+COICOP eşlemesini (`gozlem_coicop`) yeniden kurar; eşleme veya yöntem değişince geçmiş değerler de
+değişir (revizyon). Tablolar aynı `yontem_surumu` için yeniden yazılır (tablo = o gecenin csv'si);
+yöntem sürümü değişince yeni `yontem_surumu` ile paralel seri tutulur. `endeks_kosu.etiket='deneme'`
+olduğu sürece resmi seri `endeks_deneme.py`'nin csv/xlsx çıktısıdır; `endeks_kiyas.py` tablo ile
+csv'nin özdeş olduğunu her gece doğrular.
 
 ## 7. Kalite Kodları (rc)
 
@@ -107,5 +111,8 @@ Her gün/kısım MASTER koşusunun çalışma kodu (`master_rc`, `config/rc_kodl
 
 - **2026-08-17**: Baz günü (endeks = 100).
 - **2026-09-10**: v0 `endeks_deneme.py` (zincirli Jevons × Laspeyres) ilk üretim koşusu.
-- **2026-09-11**: v0.1 — matematik `fiyat_takip/endeks` modülüne taşındı; DB tabloları, vintage ilkesi,
-  kaynak kırılımı; belge kodla eşitlendi (carry/kapsam, durum kümesi, hiyerarşi, baz, bant kapısı).
+- **2026-09-11**: v0.1 — DB tabloları, kaynak kırılımı; belge kodla eşitlendi (carry/kapsam, durum
+  kümesi, hiyerarşi, baz, bant kapısı).
+- **2026-09-12**: v0.3 — K1→K24 kategori devri (5 hane), bakliyat düzeltmesi (`coicop_esleme.py`).
+- **2026-09-13**: Tek motor: `endeks_deneme.py` fonksiyonlara ayrıldı, `endeks_gece.py` aynı
+  fonksiyonlarla tabloya yazar; vintage ilkesi yerine gecelik tam revizyon; tablolar "deneme" etiketli.

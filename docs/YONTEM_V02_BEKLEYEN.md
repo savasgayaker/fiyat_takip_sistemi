@@ -22,7 +22,10 @@
   durumu), ağırlık üst sınıfa devredilir; kalem sayısı eşiği aşınca kendi zincirine döner. `hiyerarsi_dus` ile aynı
   mantık, ters yönde. Tarife sınıfları (config/tarife_siniflari.json) muaf.
 
-## 3. Vintage politikası (yayımlanan gün dokunulmaz) — **belge kararı, v0.1'de uygulanıyor**
+## 3. Vintage politikası — **13.09.2026'da geri alındı**
+- Karar: seri her gece tüm tarihçe üzerinden yeniden hesaplanır (revizyon); tablolar aynı sürüm için
+  yeniden yazılır (`endeks_gece.py --mod yenile`). Aşağıdaki metin tarihçe için korunuyor; ileride
+  "yayımlanan gün dokunulmaz" istenirse `--mod ekle` ve yeni `yontem_surumu` ile paralel seri kullanılır.
 - Gece zinciri `veri_yukle --gun 3` son üç günü yeniden yükler; `coicop_esleme` eşlemeyi her gece yeniden kurar.
   Dolayısıyla t−1 gününün kalem medyanları t günü koşusunda **revize olabilir**.
 - Kural: t günü halkası **güncel DB'deki** t−1 ve t kalem fiyatlarıyla kurulur (`ln p_i(t) − ln p_i(t−1)` revize

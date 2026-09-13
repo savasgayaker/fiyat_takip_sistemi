@@ -129,6 +129,15 @@ class SqliteRepository(Repository):
         return r[0] if r and r[0] else "0"
 
     @property
+    def etiket(self) -> Optional[str]:
+        """'deneme' while the nightly tables are still being validated against endeks_deneme's csv (endeks_kosu.etiket)."""
+        try:
+            r = self._one("SELECT etiket FROM endeks_kosu WHERE yontem_surumu=? ORDER BY hesap_zamani DESC LIMIT 1", (self.surum,))
+        except sqlite3.OperationalError:  # older DB without the column
+            return None
+        return r[0] if r else None
+
+    @property
     def data_date(self) -> Optional[str]:
         r = self._one("SELECT MAX(tarih) FROM endeks_gunluk WHERE yontem_surumu=?", (self.surum,))
         return r[0] if r else None
@@ -198,7 +207,7 @@ class SqliteRepository(Repository):
                           (s, dd, *DEVREDEN))
         return {"data_date": dd or "", "base_day": self.baz or "", "coverage_weight": float(top["kapsanan_agirlik"]) if top else 0.0,
                 "class_count": int(top["sinif"]) if top else 0, "carry_count": int(carry[0]) if carry else 0,
-                "app_version": self.app_version, "yontem_surumu": f"v{s}"}
+                "app_version": self.app_version, "yontem_surumu": f"v{s}" + (" · deneme" if self.etiket == "deneme" else "")}
 
     def index(self, level, kod, frm, to):
         if not kod:
